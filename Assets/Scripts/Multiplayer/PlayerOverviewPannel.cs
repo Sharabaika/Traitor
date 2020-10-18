@@ -23,8 +23,7 @@ namespace MultiPlayer
 
         private void Start()
         {
-            if(PhotonNetwork.IsMasterClient)
-                _gameManager.AddPlayer(photonView.Owner);
+            var character = PhotonNetwork.Instantiate(playerPrefab.name, Vector3.zero, Quaternion.identity);
         }
 
         public void Leave()
@@ -35,7 +34,6 @@ namespace MultiPlayer
         public override void OnPlayerEnteredRoom(Player newPlayer)
         {
             Debug.Log(newPlayer.NickName + " joined the room");
-            _gameManager.AddPlayer(newPlayer);
         }
 
         public override void OnPlayerLeftRoom(Player otherPlayer)

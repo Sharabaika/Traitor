@@ -1,7 +1,12 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using Character;
+using Logics;
+using MapObjects;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Characters
 {
@@ -76,7 +81,5 @@ namespace Characters
             _movement.Velocity = Vector3.zero;
             transform.position = position;
         }
-        
-        public bool IsImposter = false;
     }
 }
