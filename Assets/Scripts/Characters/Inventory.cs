@@ -102,7 +102,7 @@ namespace Character
                 
                 
                 // Rotate towards cursor
-                var d = _movement.PointOfLook - (Vector2)transform.position;
+                var d = _movement.PointOfLook - (Vector2)anchor.position;
                 var angle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
                 var rot = anchor.localEulerAngles;
                 rot.z = angle;

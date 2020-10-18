@@ -8,6 +8,7 @@ namespace Character
     public class PlayerMovement : MonoBehaviour, IPunObservable
     {
         [SerializeField] private float speed = 1.5f;
+        [SerializeField] private Transform anchor;
         
         private Camera _camera;
         private PhotonView _photonView;
@@ -48,7 +49,7 @@ namespace Character
 
         private void LookAtCursor()
         {
-            _animator.IsLookingRight = (PointOfLook.x - transform.position.x)> 0;
+            _animator.IsLookingRight = (PointOfLook.x - anchor.position.x)> 0;
         }
 
         private void Move(Vector3 velocity)
