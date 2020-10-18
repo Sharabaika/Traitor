@@ -12,6 +12,13 @@ namespace Characters
         private Inventory _inventory;
         private Health _health;
 
+        [SerializeField] private ContactFilter2D filter;
+
+        public bool IsAlive { get; private set; } = true;
+        public bool IsImposter = false;
+
+        public UnityEvent DeathEvent; 
+
         private void Awake()
         {
             _movement = GetComponent<PlayerMovement>();

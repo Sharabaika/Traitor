@@ -1,13 +1,14 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
-namespace Misc
+namespace UserInterface
 {
     public class UI : MonoBehaviour
     {
         [SerializeField] private GameObject startGameButton;
+        [SerializeField]private VotingInterface votingInterface;
+        
         public GameObject StartGameButton => startGameButton;
+        public VotingInterface VotingInterface => votingInterface;
 
         private void Start()
         {
