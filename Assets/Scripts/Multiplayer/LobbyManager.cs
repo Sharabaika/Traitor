@@ -1,23 +1,25 @@
-﻿using Photon.Pun;
+﻿using System;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace Multiplayer
 {
     public class LobbyManager : MonoBehaviourPunCallbacks
     {
-        [SerializeField]private Text logText;
-    
+        [SerializeField] private Text logText;
+        [SerializeField] private InputField nickTextField;
+
+        [SerializeField] private PlayerAccount _playerAccount;
+        
         void Start()
         {
-            PhotonNetwork.NickName = "Player" + Random.Range(1,1000);
-
-            Log("New player nick is set to" + PhotonNetwork.NickName);
-        
             PhotonNetwork.AutomaticallySyncScene = true;
             PhotonNetwork.GameVersion = "1";
             PhotonNetwork.ConnectUsingSettings();
-        
+
+            nickTextField.text = _playerAccount.NickName;
         }
 
         public override void OnConnectedToMaster()
@@ -27,11 +29,13 @@ namespace Multiplayer
 
         public void CreateRoom()
         {
+            PhotonNetwork.NickName = _playerAccount.NickName;
             PhotonNetwork.CreateRoom(null);
         }
 
         public void JoinRoom()
         {
+            PhotonNetwork.NickName = _playerAccount.NickName;
             PhotonNetwork.JoinRandomRoom();
         }
 
@@ -40,6 +44,11 @@ namespace Multiplayer
             Log("Joined to room");
         
             PhotonNetwork.LoadLevel("GameScene");
+        }
+
+        public void ChangeNick(string nick)
+        {
+            _playerAccount.NickName = nick;
         }
 
         public void Log(string message)
