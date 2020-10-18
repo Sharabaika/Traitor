@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
-namespace Character
+namespace Misc
 {
     public class HealthPanel : MonoBehaviour
     {
