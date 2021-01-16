@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Character;
+﻿using Character;
+using Cinemachine;
 using Logics;
 using MapObjects;
 using Photon.Pun;
-using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,17 +10,25 @@ namespace Characters
 {
     public class PlayerCharacter : MonoBehaviourPunCallbacks
     {
+        [SerializeField] private DeadBody deadBodyPrefab;
+        [SerializeField] private Ghost ghostPrefab;
+
+        [SerializeField] private int otherPlayerLayer;
+        [SerializeField] private int currentPlayerLayer;
+        
         private PlayerMovement _movement;
         private CharacterAnimator _animator;
         private Inventory _inventory;
         private Health _health;
 
-        [SerializeField] private ContactFilter2D filter;
-
-        public bool IsAlive { get; private set; } = true;
+        public QuestJournal questJournal { get; set; }
+        
+        // TODO make private
         public bool IsImposter = false;
 
-        public UnityEvent DeathEvent; 
+        public bool IsAlive { get; private set; } = true;
+        
+        public UnityEvent DeathEvent;
 
         private void Awake()
         {
@@ -43,9 +49,7 @@ namespace Characters
                     // TODO add user interface
                     
                     var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
-                    Debug.Log(obj.gameObject.name);
-
-                    // TODO fix
+                    // TODO show hint
                     obj?.Interact(this);
                 }
             }
@@ -53,12 +57,35 @@ namespace Characters
 
         private void Start()
         {
-            FindObjectOfType<GameManager>().AddPlayer(this);
+            var manager = FindObjectOfType<GameManager>();
+            manager.AddPlayer(this);
+
+            if (photonView.IsMine)
+            {
+                var virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+                virtualCamera.Follow = transform;
+
+                gameObject.layer = currentPlayerLayer;
+            }
+            else
+            {
+                gameObject.layer = otherPlayerLayer;
+            }
         }
 
         public void Kill()
         {
             photonView.RPC("Die", RpcTarget.All);
+        }
+
+        public void Freeze()
+        {
+            _movement.IsFrozen = true;
+        }
+
+        public void Unfreeze()
+        {
+            _movement.IsFrozen = false;
         }
         
         [PunRPC]public void Die()
@@ -67,7 +94,11 @@ namespace Characters
             DeathEvent?.Invoke();
             
             IsAlive = false;
-            Destroy(gameObject, 1);
+            Instantiate(deadBodyPrefab, transform.position, Quaternion.identity);
+
+            gameObject.SetActive(false);
+            if(photonView.IsMine)
+                Instantiate(ghostPrefab, transform.position, Quaternion.identity);
         }
         
 

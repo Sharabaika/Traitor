@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Character;
 using Photon.Pun;
 using UnityEngine;
 
-namespace Character
+namespace Characters
 {
     [RequireComponent(typeof(PhotonView), typeof(CharacterAnimator))]
     public class PlayerMovement : MonoBehaviour, IPunObservable
@@ -20,6 +20,7 @@ namespace Character
         private float _lastMovementTime = 0f;
 
         public Vector2 PointOfLook { get; private set; }
+        public bool IsFrozen { get; set; }
         
         private void Start()
         {
@@ -42,7 +43,7 @@ namespace Character
 
                 PointOfLook = _camera.ScreenToWorldPoint(Input.mousePosition);
             }
-            
+
             Move(Velocity);
             LookAtCursor();
         }
@@ -54,9 +55,11 @@ namespace Character
 
         private void Move(Vector3 velocity)
         {
+            if(IsFrozen) velocity = Vector3.zero;
+
             _animator.Movement(velocity);
             
-            transform.Translate(Velocity * (Time.time - _lastMovementTime), Space.World);
+            transform.Translate(velocity * (Time.time - _lastMovementTime), Space.World);
             _lastMovementTime = Time.time;
         }
 

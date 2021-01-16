@@ -1,4 +1,5 @@
 ﻿using System;
+using Characters;
 using ExitGames.Client.Photon;
 using Items;
 using MultiPlayer;
@@ -27,7 +28,7 @@ namespace Character
                 _isHidden = value;
                 if(ActiveItem is null)
                     return;
-                ActiveItem.gameObject.SetActive(!value);
+                ActiveItem.IsHidden = value;
             }
         }
 
@@ -63,6 +64,9 @@ namespace Character
 
         [PunRPC] private void ShootActiveWeapon()
         {
+            if(ActiveItem is null || isHidden)
+                return;
+            
             if (_photonView.IsMine)
             {
                 ActiveItem.Shoot();

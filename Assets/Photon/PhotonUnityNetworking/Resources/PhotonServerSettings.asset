@@ -54,6 +54,12 @@ MonoBehaviour:
   - EndVoting
   - Die
   - EndGame
+  - SyncInteraction
+  - Sync
+  - Switch
+  - SyncState
+  - SingJournalIfCan
+  - UpdateAvailableJournals
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

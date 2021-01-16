@@ -1,28 +1,39 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Characters;
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
+using UnityEngine.Events;
 using UserInterface;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Logics
 {
     public class Voting: MonoBehaviourPun
     {
-        [SerializeField] private UI userInterface;
+        [SerializeField] private double votingTimer = 180f;
+
+        public UnityEvent<PlayerCharacter[], float> OnStartVoting;
+        public UnityEvent OnEndVoting;
 
         private bool _isVotingNow = false;
         private GameManager _manager;
 
-        private bool _canStartVoting(Player initiator)
+        private List<Player> _voters;
+
+        private List<Player> _votes;
+
+        private double _votingStartingTime;
+        public double RemainingVotingTime => votingTimer - (PhotonNetwork.Time - _votingStartingTime);
+        
+        private bool CanStartVoting(Player initiator)
         {
             // TODO check for number of initiations
             return _manager.GameIsStarted && !_isVotingNow && _manager.GetPlayersCharacter(initiator).IsAlive;
         }
-
-        private List<Player> _voters;
-        private List<Player> _votes;
 
         private void Awake()
         {
@@ -40,9 +51,17 @@ namespace Logics
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                if (_canStartVoting(initiator))
+                if (CanStartVoting(initiator))
                 {
                     photonView.RPC("StartVoting", RpcTarget.Others, initiator);
+
+                    _votingStartingTime = PhotonNetwork.Time;
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(new Hashtable()
+                        {{"votingStartingTime", PhotonNetwork.Time}});
+                    
+                    _isVotingNow = true;
+
+                    StartCoroutine(VotingTimer());
 
                 }
                 else
@@ -55,9 +74,27 @@ namespace Logics
             _voters.Clear();
 
             _isVotingNow = true;
-            userInterface.VotingInterface.StartVoting(_manager.AliveCharacters.ToArray(), _manager.AlivePlayers.ToArray());
+
+            if (!PhotonNetwork.IsMasterClient &&
+                PhotonNetwork.CurrentRoom.CustomProperties.TryGetValue("votingStartingTime", out var value))
+            {
+                _votingStartingTime = (double) value;
+            }
+            
+            OnStartVoting?.Invoke(_manager.Characters.ToArray(), (float)RemainingVotingTime);
         }
 
+        private IEnumerator VotingTimer()
+        {
+            while (RemainingVotingTime > 0 && _isVotingNow)
+            {
+                yield return null;
+            }
+
+            if(_isVotingNow)
+                EndVoting();
+        }
+        
         // TODO add voting timer
         
         [PunRPC] public void Vote(Player vote, Player voter)
@@ -78,24 +115,25 @@ namespace Logics
 
             if (_voters.Count == _manager.AlivePlayers.Count)
             {
-                // TODO убрать говнокод
-                var res = FindResult(_votes.ToArray());
-                photonView.RPC("EndVoting", RpcTarget.All, _voters.ToArray(), _votes.ToArray(), res);
+                EndVoting();
             }
         }
-
-        [PunRPC] public void EndVoting(Player[] voters, Player[] votes, Player result)
+        
+        [PunRPC] public void EndVoting()
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                _manager.KickPlayer(result);
+                var res = FindResult(_votes.ToArray());
+                _manager.KickPlayer(res);
+                photonView.RPC("EndVoting", RpcTarget.Others);
             }
 
-            _isVotingNow = false;
-            userInterface.VotingInterface.EndVoting();
-            Debug.Log(result);
-        }
 
+            _isVotingNow = false;
+            // TODO show results
+            OnEndVoting?.Invoke();
+        }
+        
         private static Player FindResult(Player[] votes)
         {
             /*

@@ -4,6 +4,7 @@ using Photon.Realtime;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using Characters;
+using UnityEngine.Events;
 using UserInterface;
 
 namespace Logics
@@ -15,6 +16,8 @@ namespace Logics
         [SerializeField] private UI userInterface;
         
         [SerializeField] private int requiredPlayers = 2;
+
+        [SerializeField] private UnityEvent OnGameStarted;
 
         private List<PlayerCharacter> _characters;
         private List<Player> _players;
@@ -40,6 +43,10 @@ namespace Logics
             }
         }
 
+        public static GameManager Instance { get; private set; }
+        
+        public PlayerCharacter CurrentCharacter => GetPlayersCharacter(PhotonNetwork.LocalPlayer); 
+        
         public bool GameIsStarted { get; private set; } = false;
 
         private Voting _voting;
@@ -50,6 +57,8 @@ namespace Logics
             _characters = new List<PlayerCharacter>();
             _players = new List<Player>();
             _voting = GetComponent<Voting>();
+
+            Instance = this;
         }
 
         // TODO add remove player
@@ -62,8 +71,8 @@ namespace Logics
 
             if (_characters.Count >= requiredPlayers)
                 CanStartGame = true;
-            
-            Debug.Log(character.photonView.Owner.NickName);
+
+            character.DeathEvent.AddListener(CheckGameState);
         }
         
         public void StartGame()
@@ -73,14 +82,12 @@ namespace Logics
             // pick impostor
             var impostor = _characters[Random.Range(0, _characters.Count)];
             impostor.photonView.RPC("SignRoles", RpcTarget.All,1, true);
-                
             // TODO pick roles
             
             MovePlayersToSpawnPositions();
-
-            // TODO spawn players
-
+            
             GameIsStarted = true;
+            OnGameStarted?.Invoke();
         }
 
         public void MovePlayersToSpawnPositions()
@@ -92,16 +99,17 @@ namespace Logics
             var angle = 0;
             foreach (var character in _characters)
             {
-                if(!character.IsAlive)
-                    continue;
-                
-                var pos = homePoint.position + Quaternion.Euler(0, 0, angle) * Vector3.right;
-                character.photonView.RPC("RelocateTo", character.photonView.Owner, pos);
+                // TODO if character.isAlive
+                if (character.IsAlive)
+                { 
+                    var pos = homePoint.position + Quaternion.Euler(0, 0, angle) * Vector3.right;
+                    character.photonView.RPC("RelocateTo", character.photonView.Owner, pos);
+                }
                 
                 angle += delta;
             }
         }
-
+        
         public void KickPlayer(Player player)
         {
             if(player is null)
@@ -113,14 +121,18 @@ namespace Logics
 
         public void CheckGameState()
         {
-            Debug.Log("kek");
-            
             if(!PhotonNetwork.IsMasterClient)
                 return;
 
-            if (Impostors.Count >= AliveCharacters.Count)
+            var impostors = Impostors.Count;
+            var civs = AliveCharacters.Count - impostors;
+            if (impostors == 0)
             {
-                photonView.RPC("EndGame", RpcTarget.All);
+                Debug.Log("civs win");
+            }
+            else if (impostors >= civs)
+            {
+                Debug.Log("imps win");
             }
         }
 
@@ -129,6 +141,23 @@ namespace Logics
             Debug.Log("end");
         }
 
+        public void FreezePlayers()
+        {
+            foreach (var character in _characters)
+            {
+                character.Freeze();
+            }
+        }
+
+        public void UnfreezePlayers()
+        {
+            foreach (var character in _characters)
+            {
+                character.Unfreeze();
+            }
+        }
+        
+        
         public PlayerCharacter GetPlayersCharacter(Player player)
         {
             var i = _players.IndexOf(player);

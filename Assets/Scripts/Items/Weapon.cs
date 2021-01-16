@@ -1,6 +1,7 @@
 ﻿using Misc;
 using Photon.Pun;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Items
 {
@@ -11,6 +12,21 @@ namespace Items
 
         [SerializeField] private float damage = 1f;
         [SerializeField] private float maxDist = 5f;
+
+        [SerializeField] protected UnityEvent OnShoot;
+        [SerializeField] protected GameObject sprite;
+
+        private bool _isHidden = false;
+
+        public bool IsHidden
+        {
+            get => _isHidden;
+            set
+            {
+                _isHidden = value; 
+                sprite.SetActive(!value);
+            }
+        }
 
         public void Shoot()
         {
@@ -24,10 +40,11 @@ namespace Items
                 damageable?.TakeHit(damage);
             }
         }
+        
 
         public void PlayEffects()
         {
-            shootingEffects.Play();
+            OnShoot?.Invoke();
         }
     }
 }
