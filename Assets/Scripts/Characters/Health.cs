@@ -23,14 +23,15 @@ namespace Characters
         }
         private float _health;
 
-        public void TakeHit(float damage)
+        public void TakeDamage(float damage)
         {
-            photonView.RPC("TakeDamage", RpcTarget.All, damage);
+            photonView.RPC("RPC_TakeDamage", RpcTarget.All, damage);
         }
 
-        [PunRPC] private void TakeDamage(float damage)
+        [PunRPC] private void RPC_TakeDamage(float damage)
         {
             RemainingHealth -= damage;
+            Debug.Log(photonView.Owner + " took " + damage + " damage");
         }
 
         private void Awake()

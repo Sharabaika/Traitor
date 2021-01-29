@@ -10,111 +10,99 @@ using UnityEngine;
 
 namespace Character
 {
-    public class Inventory : MonoBehaviour, IPunObservable
+    public class Inventory : MonoBehaviourPunCallbacks, IPunObservable
     {
-        [SerializeField]private Weapon[] items = new Weapon[4];
+        [SerializeField]private Weapon[] items;
         [SerializeField]private Transform anchor;
-
-        private PhotonView _photonView;
         
         // Remove
         private PlayerMovement _movement;
-
-        public bool isHidden
-        {
-            get => _isHidden;
-            set
-            {
-                _isHidden = value;
-                if(ActiveItem is null)
-                    return;
-                ActiveItem.IsHidden = value;
-            }
-        }
+        private PlayerCharacter _character;
 
         private bool _isHidden;
-        private int _index = 0;
+        private int _activeSlotIndex = 0;
+        public Weapon ActiveItem => items[_activeSlotIndex];
 
-        private Weapon ActiveItem => items[_index];
-
-        
-        /// <summary>
-        /// Equips or unequips active slot if choose the same 
-        /// </summary>
-        [PunRPC]private void EquipSlot(int index)
+        private void EquipSlot(int index)
         {
-            if (index == _index) isHidden = !isHidden;
-            ChangeActiveSlot(index);
-        }
-        
-
-        /// <summary>
-        /// hides active and enables chosen
-        /// </summary>
-        private void ChangeActiveSlot(int index)
-        {
-            if (_index == index)
+            if (_activeSlotIndex == index)
             {
                 return;
             }
-            isHidden = true;
-            _index = index;
-            isHidden = false;
-        }
 
-        [PunRPC] private void ShootActiveWeapon()
-        {
-            if(ActiveItem is null || isHidden)
-                return;
+            if(ActiveItem !=null)
+                ActiveItem.isHidden = true;
             
-            if (_photonView.IsMine)
-            {
-                ActiveItem.Shoot();
-            }
-            else
-            {
-                ActiveItem.PlayEffects();
-            }
-        }
+            _activeSlotIndex = index;
+            
+            if(ActiveItem !=null)
+                ActiveItem.isHidden = false;
 
-        private void Start()
-        {
-            isHidden = false;
+            if (photonView.IsMine)
+            {
+                var table = new Hashtable {{"activeSlotIndex", index}};
+                PhotonNetwork.LocalPlayer.SetCustomProperties(table);
+            }
+            
+            Debug.Log(photonView.Owner + " changed active inventory slot to " + index);
         }
 
         private void Awake()
         {
-            _photonView = GetComponent<PhotonView>();
             _movement = GetComponent<PlayerMovement>();
+            _character = GetComponent<PlayerCharacter>();
         }
 
         private void Update()
         {
-            if (_photonView.IsMine)
+            if (!photonView.IsMine) return;
+
+            for (var i = 0; i < items.Length; i++)
             {
-                if (Input.GetKeyDown(KeyCode.Alpha1))
-                {
-                    // EquipSlot(0);
-                    _photonView.RPC("EquipSlot", RpcTarget.All, 0);
-                }
+                if(Input.GetKeyDown((i+1).ToString()))
+                    EquipSlot(i);
+            }
 
-                if (Input.GetKeyDown(KeyCode.Mouse0))
-                {
-                    // ActiveItem.Shoot();
-                    _photonView.RPC("ShootActiveWeapon", RpcTarget.All);
-                }
+            if (Input.GetKeyDown(KeyCode.Mouse0) && ActiveItem!=null)
+            {
+                ActiveItem.Use(_character);
+                // photonView.RPC("UseActiveItem", RpcTarget.All);
+            }
                 
                 
-                // Rotate towards cursor
-                var d = _movement.PointOfLook - (Vector2)anchor.position;
-                var angle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
-                var rot = anchor.localEulerAngles;
-                rot.z = angle;
-                anchor.localEulerAngles = rot;
+            // Rotate towards cursor
+            var d = _movement.PointOfLook - (Vector2)anchor.position;
+            var angle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+            var rot = anchor.localEulerAngles;
+            rot.z = angle;
+            anchor.localEulerAngles = rot;
 
-                anchor.localScale = Mathf.Abs(angle) > 90f ? new Vector3(1,-1,1) : new Vector3(1,1,1);
+            anchor.localScale = Mathf.Abs(angle) > 90f ? new Vector3(1,-1,1) : new Vector3(1,1,1);
+        }
+
+        [PunRPC] private void UseActiveItem()
+        {
+            if(ActiveItem is null)
+                return;
+            
+            if (photonView.IsMine)
+            {
+                ActiveItem.Use(_character);
+            }
+            else
+            {
+                // ActiveItem.PlayEffects();
             }
         }
+
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        {
+            if (!photonView.IsMine && targetPlayer == photonView.Owner)
+            {
+                EquipSlot((int) changedProps["activeSlotIndex"]);
+            }
+        }
+
 
         // Bad
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

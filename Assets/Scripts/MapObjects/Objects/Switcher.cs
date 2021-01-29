@@ -1,18 +1,18 @@
 ﻿using System;
+using Characters;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace MapObjects.Objects
 {
-    public class Switcher : MonoBehaviourPunCallbacks
+    public class Switcher : InteractableObject
     {
         [SerializeField] public UnityEvent onActivation;
         [SerializeField] public UnityEvent onDeactivate;
 
         [SerializeField] private bool On;
-
-        [SerializeField] private bool isSync = true;
         
         private bool _isOn;
         public bool isOn
@@ -23,9 +23,6 @@ namespace MapObjects.Objects
                 if (isOn == value) return;
                 _isOn = value;
                 TriggerEvents(isOn);
-                
-                if(isSync)
-                    photonView.RPC("SyncState", RpcTarget.Others, isOn, true);
             }
         }
 
@@ -48,15 +45,29 @@ namespace MapObjects.Objects
                 onDeactivate?.Invoke();
             }
         }
-        
+
+        protected override void DefaultInteraction(PlayerCharacter player)
+        {
+            Switch();
+        }
+
         public void Switch()
         {
+            Debug.Log(gameObject.name + " switcher is switched");
             isOn = !isOn;
         }
 
         private void OnValidate()
         {
             isOn = On;
+        }
+
+        protected override void OnNewPlayerJoinedRoom(Player newPlayer)
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                photonView.RPC("SyncState", newPlayer, isOn, true);
+            }
         }
     }
 }

@@ -4,6 +4,6 @@ namespace Misc
 {
     public interface IDamageable
     {
-        void TakeHit(float damage);
+        void TakeDamage(float damage);
     }
 }

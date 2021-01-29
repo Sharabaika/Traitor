@@ -20,8 +20,6 @@ namespace Characters
         private CharacterAnimator _animator;
         private Inventory _inventory;
         private Health _health;
-
-        public QuestJournal questJournal { get; set; }
         
         // TODO make private
         public bool IsImposter = false;
@@ -40,8 +38,10 @@ namespace Characters
 
         private void Update()
         {
+            if(photonView.IsMine == false)
+                return;
             // interacting
-            if (Input.GetKeyDown(KeyCode.Mouse0) && _inventory.isHidden)
+            if (Input.GetKeyDown(KeyCode.Mouse0) && _inventory.ActiveItem != null)
             {
                 var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
                 if (hit)
@@ -102,7 +102,7 @@ namespace Characters
         }
         
 
-        [PunRPC] public void SignRoles(int prof, bool isImposter)
+        [PunRPC] public void SignRoles(bool isImposter)
         {
             IsImposter = isImposter;
         }

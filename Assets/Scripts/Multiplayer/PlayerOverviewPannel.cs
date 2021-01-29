@@ -43,7 +43,7 @@ namespace MultiPlayer
 
         public override void OnLeftRoom()
         {
-            SceneManager.LoadScene("Menu");
+            SceneManager.LoadScene("MainMenu");
         }
     }
 }

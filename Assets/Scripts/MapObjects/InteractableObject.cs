@@ -19,8 +19,6 @@ namespace MapObjects
 
         [SerializeField] private InteractableObjectStyle style;
         [SerializeField] protected InteractableObjectInterface ui;
-
-        [SerializeField] private bool isSynchronized;
         
         private SpriteRenderer _renderer;
         
@@ -52,16 +50,14 @@ namespace MapObjects
             {
                 ui.Display(with);
             }
-
-            DefaultInteraction(with);
-            OnUsedByCharacter?.Invoke(with);
             
-            if(isSynchronized)
-                photonView.RPC("Sync", RpcTarget.Others, with.photonView.Owner);
+            photonView.RPC("SyncInteraction", RpcTarget.All, with.photonView.Owner);
         }
 
-        [PunRPC] public void Sync(Player interactor)
+        [PunRPC] public void SyncInteraction(Player interactor)
         {
+            Debug.Log(interactor+" interaction with " + gameObject.name + " synced");
+
             var character = GameManager.Instance.GetPlayersCharacter(interactor);
             DefaultInteraction(character);
             OnUsedByCharacter?.Invoke(character);
@@ -82,6 +78,11 @@ namespace MapObjects
             
         }
 
+        protected virtual void OnNewPlayerJoinedRoom(Player newPlayer)
+        {
+            
+        }
+
         private void OnMouseEnter()
         {
             if(isOutliningOnMouseOver)
@@ -92,6 +93,12 @@ namespace MapObjects
         {
             if(isOutliningOnMouseOver)
                 IsOutlining = false;
+        }
+
+        public override void OnPlayerEnteredRoom(Player newPlayer)
+        {
+            base.OnPlayerEnteredRoom(newPlayer);
+            OnNewPlayerJoinedRoom(newPlayer);
         }
     }
 }

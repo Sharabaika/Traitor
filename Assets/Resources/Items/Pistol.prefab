@@ -78,11 +78,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bbf5dcb169948d18fded3a662103453, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  muzzle: {fileID: 566721462171568654}
-  shootingEffects: {fileID: 4040860491712128222}
-  damage: 1
-  maxDist: 5
-  OnShoot:
+  sprite: {fileID: 3996251255518398527}
+  OnUse:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4040860491712128222}
@@ -109,7 +106,10 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  sprite: {fileID: 3996251255518398527}
+  isSync: 1
+  muzzle: {fileID: 566721462171568654}
+  damage: 1
+  maxDist: 5
 --- !u!114 &5528604537569463105
 MonoBehaviour:
   m_ObjectHideFlags: 0
