@@ -9,24 +9,17 @@ namespace UserInterface.Inventory
     [ExecuteInEditMode] public class ItemSlotUI : MonoBehaviour, IDropHandler
     {
         [SerializeField] private Image icon;
-        [SerializeField] private ItemContainer itemContainer;
         [SerializeField] private TextMeshProUGUI itemQuantityText;
 
-        public ItemSlot ItemSlot => itemContainer.GetSlotByIndex(_slotIndex);
+        // public ItemSlot ItemSlot => itemContainer.GetSlotByIndex(_slotIndex);
 
-        private Item item { get; set; }
-        private int _slotIndex;
+        [SerializeField]public ItemContainer ItemContainer;
 
-        private void OnEnable()
+        [SerializeField]private ItemSlot _itemSlot;
+        public ItemSlot ItemSlot
         {
-            _slotIndex = transform.GetSiblingIndex();
-            UpdateSlotUi();
-        }
-
-        private void Start()
-        {
-            // TODO add OnLocalPlayerCreated to GameManager and listen here
-            itemContainer.onItemsUpdated.AddListener(UpdateSlotUi);
+            get => _itemSlot;
+            set => _itemSlot = value;
         }
 
         public void OnDrop(PointerEventData eventData)
@@ -34,10 +27,10 @@ namespace UserInterface.Inventory
             var itemDragHandler = eventData.pointerDrag.GetComponent<ItemDragHandler>();
             if (itemDragHandler is null)
                 return;
-            itemContainer.Combine(ItemSlot, itemDragHandler.ItemSlotUi.ItemSlot);
+            ItemContainer.Combine(itemDragHandler.ItemSlotUi.ItemSlot, ItemSlot);
         }
 
-        private void UpdateSlotUi()
+        public void UpdateSlotUI()
         {
             if (ItemSlot.IsEmpty)
             {

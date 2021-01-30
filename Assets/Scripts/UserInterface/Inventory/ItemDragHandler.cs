@@ -1,5 +1,9 @@
 ﻿using System;
+using DapperDino.Events.CustomEvents;
+using ScriptableEvents.Events;
+using ScriptableItems;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace UserInterface.Inventory
@@ -9,9 +13,23 @@ namespace UserInterface.Inventory
     {
         [SerializeField] protected ItemSlotUI itemSlotUi;
 
+        [SerializeField] protected ItemEvent OnStartHoveringItem;
+        [SerializeField] protected VoidEvent OnStopHoveringItem;
+        
         private CanvasGroup _canvasGroup;
         private Transform _originalParent;
-        private bool isHovering = false;
+        private bool _isHovering = false;
+
+        public bool IsHovering
+        {
+            get => _isHovering;
+            set
+            {
+                _isHovering = value;
+                if(value == false)
+                    OnStopHoveringItem.Raise();
+            }
+        }
 
         public ItemSlotUI ItemSlotUi => itemSlotUi;
 
@@ -22,25 +40,24 @@ namespace UserInterface.Inventory
 
         private void OnDisable()
         {
-            if (isHovering)
-                isHovering = false;
+            if (_isHovering)
+                _isHovering = false;
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            Debug.Log("OnPointerDown");
             if (eventData.button == PointerEventData.InputButton.Left)
             {
-
                 _originalParent = transform.parent;
                 transform.SetParent(transform.parent.parent);
                 _canvasGroup.blocksRaycasts = false;
+
+                IsHovering = false;
             }
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            // Debug.Log("OnDrag");
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 transform.position = Input.mousePosition;
@@ -49,8 +66,6 @@ namespace UserInterface.Inventory
 
         public virtual void OnPointerUp(PointerEventData eventData)
         {
-            Debug.Log("OnPointerUp");
-
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 transform.SetParent(_originalParent);
@@ -61,16 +76,14 @@ namespace UserInterface.Inventory
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            Debug.Log("OnPointerEnter");
-
-            isHovering = true;
+            OnStartHoveringItem.Raise(itemSlotUi.ItemSlot.Item);
+            IsHovering = true;
+            
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            Debug.Log("OnPointerExit");
-
-            isHovering = false;
+            IsHovering = false;
         }
     }
 }

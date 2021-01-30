@@ -14,8 +14,9 @@ namespace ScriptableItems
             set
             {
                 item = value;
-                if (item is null)
-                    Quantity = 0;
+                if (value is null)
+                    quantity = 0;
+                else quantity = 1;
             }
         }
 
@@ -27,6 +28,8 @@ namespace ScriptableItems
                 if(Item is null)
                     return;
                 quantity = Mathf.Min(value, Item.MaxStack);
+                if (Quantity == 0)
+                    item = null;
             }
         }
 

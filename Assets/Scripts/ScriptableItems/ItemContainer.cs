@@ -5,14 +5,20 @@ using UnityEngine.Events;
 
 namespace ScriptableItems
 {
-    [ExecuteInEditMode] class ItemContainer : MonoBehaviour, IItemContainer
+    [ExecuteInEditMode]public class ItemContainer : MonoBehaviour
     {
         [SerializeField] public UnityEvent onItemsUpdated;
-        
-        [SerializeField]private ItemSlot[] _itemSlots = new ItemSlot[20];
+        [SerializeField] public UnityEvent OnInventoryReshape;
+        [SerializeField] protected ItemSlot[] _itemSlots = new ItemSlot[20];
 
+        public int Capacity => _itemSlots.Length;
+        private int _previousCapacity;
+        
         public void Combine(ItemSlot itemsToAdd, ItemSlot target)
         {
+            if(itemsToAdd == target)
+                return;
+            
             if (itemsToAdd.Item == target.Item)
             {
                 var quantity = target.Quantity + itemsToAdd.Quantity;
@@ -57,6 +63,19 @@ namespace ScriptableItems
         public ItemSlot GetSlotByIndex(int index)
         {
             return _itemSlots[index];
+        }
+
+        protected void OnValidate()
+        {
+            if (Capacity != _previousCapacity)
+            {
+                OnInventoryReshape?.Invoke();
+                _previousCapacity = Capacity;
+            }
+            else
+            {
+                onItemsUpdated.Invoke();
+            }
         }
     }
 }
