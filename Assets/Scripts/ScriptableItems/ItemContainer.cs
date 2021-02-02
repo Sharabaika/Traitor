@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Linq;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace ScriptableItems
 {
-    [ExecuteInEditMode]public class ItemContainer : MonoBehaviour
+    [ExecuteInEditMode]public class ItemContainer : MonoBehaviourPun
     {
         [SerializeField] public UnityEvent onItemsUpdated;
+        [SerializeField] public UnityEvent onItemsSynchronized;
         [SerializeField] public UnityEvent OnInventoryReshape;
         [SerializeField] protected ItemSlot[] _itemSlots = new ItemSlot[20];
-
+        
         public int Capacity => _itemSlots.Length;
         private int _previousCapacity;
+        
+        public ItemSlot GetSlotByIndex(int index)
+        {
+            return _itemSlots[index];
+        }
         
         public void Combine(ItemSlot itemsToAdd, ItemSlot target)
         {
@@ -28,10 +35,11 @@ namespace ScriptableItems
             }
             else
             {
-                ItemSlot.Swap(itemsToAdd, target);
+                ItemSlot.SwapItems(itemsToAdd, target);
             }
             
             onItemsUpdated.Invoke();
+            
         }
 
         public bool HasItem(Item item)
@@ -58,11 +66,6 @@ namespace ScriptableItems
                     quantity += itemSlot.Quantity;
             }
             return quantity;
-        }
-
-        public ItemSlot GetSlotByIndex(int index)
-        {
-            return _itemSlots[index];
         }
 
         protected void OnValidate()

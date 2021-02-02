@@ -7,7 +7,7 @@ namespace ScriptableItems
     {
         [SerializeField]private Item item;
         [SerializeField,Min(0)] private int quantity = 0;
-
+        
         public Item Item
         {
             get => item;
@@ -28,14 +28,17 @@ namespace ScriptableItems
                 if(Item is null)
                     return;
                 quantity = Mathf.Min(value, Item.MaxStack);
-                if (Quantity == 0)
+                if (Quantity < 0)
+                {
                     item = null;
+                    quantity = 0;
+                }
             }
         }
 
         public bool IsEmpty => Quantity == 0 || Item is null;
 
-        public static void Swap(ItemSlot a, ItemSlot b)
+        public static void SwapItems(ItemSlot a, ItemSlot b)
         {
             var tItem = a.item;
             var tQuantity = a.quantity;

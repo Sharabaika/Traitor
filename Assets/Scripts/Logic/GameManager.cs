@@ -10,12 +10,14 @@ using UserInterface;
 namespace Logics
 {
     public class GameManager : MonoBehaviourPunCallbacks
-    {
+    { 
         [SerializeField] private PlayerCharacter playerPrefab;
         [SerializeField] private Transform homePoint;
         [SerializeField] private UI userInterface;
         
         [SerializeField] private int requiredPlayers = 2;
+
+        [SerializeField] private UnityEvent<PlayerCharacter> OnLocalPlayerCreated;
 
         [SerializeField] private UnityEvent OnGameStarted;
 
@@ -84,7 +86,10 @@ namespace Logics
             if (_characters.Count >= requiredPlayers)
                 CanStartGame = true;
 
-            character.DeathEvent.AddListener(CheckGameState);
+            if (character.photonView.IsMine)
+            {
+                OnLocalPlayerCreated?.Invoke(character);
+            }
         }
         
         public void StartGame()

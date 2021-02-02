@@ -5,6 +5,7 @@ using ScriptableItems;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace UserInterface.Inventory
 {
@@ -15,6 +16,7 @@ namespace UserInterface.Inventory
 
         [SerializeField] protected ItemEvent OnStartHoveringItem;
         [SerializeField] protected VoidEvent OnStopHoveringItem;
+
         
         private CanvasGroup _canvasGroup;
         private Transform _originalParent;
@@ -49,9 +51,8 @@ namespace UserInterface.Inventory
             if (eventData.button == PointerEventData.InputButton.Left)
             {
                 _originalParent = transform.parent;
-                transform.SetParent(transform.parent.parent);
+                transform.SetParent(itemSlotUi.ItemContainerUI.FirstPriorityCanvas.transform);
                 _canvasGroup.blocksRaycasts = false;
-
                 IsHovering = false;
             }
         }

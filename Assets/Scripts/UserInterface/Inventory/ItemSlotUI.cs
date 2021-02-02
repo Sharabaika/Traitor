@@ -6,28 +6,31 @@ using UnityEngine.UI;
 
 namespace UserInterface.Inventory
 {
-    [ExecuteInEditMode] public class ItemSlotUI : MonoBehaviour, IDropHandler
+    public class ItemSlotUI : MonoBehaviour, IDropHandler
     {
-        [SerializeField] private Image icon;
-        [SerializeField] private TextMeshProUGUI itemQuantityText;
+        [SerializeField] protected Image background;
+        [SerializeField] protected Image icon;
+        [SerializeField] protected TextMeshProUGUI itemQuantityText;
 
-        // public ItemSlot ItemSlot => itemContainer.GetSlotByIndex(_slotIndex);
-
-        [SerializeField]public ItemContainer ItemContainer;
-
-        [SerializeField]private ItemSlot _itemSlot;
-        public ItemSlot ItemSlot
-        {
-            get => _itemSlot;
-            set => _itemSlot = value;
-        }
+        
+        // public ItemContainer ItemContainer;
+        public ItemContainer ItemContainer { get; set; }
+        public ItemSlot ItemSlot { get; set; }
+        public ItemContainerUI ItemContainerUI { get; set; }
 
         public void OnDrop(PointerEventData eventData)
         {
             var itemDragHandler = eventData.pointerDrag.GetComponent<ItemDragHandler>();
             if (itemDragHandler is null)
                 return;
-            ItemContainer.Combine(itemDragHandler.ItemSlotUi.ItemSlot, ItemSlot);
+            var target = itemDragHandler.ItemSlotUi;
+            ItemContainer.Combine(target.ItemSlot, ItemSlot);
+
+            // TODO the only way to shift items between chests
+            if (ItemContainer != target.ItemContainer)
+            {
+                target.ItemContainer.onItemsUpdated.Invoke();
+            }
         }
 
         public void UpdateSlotUI()

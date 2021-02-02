@@ -18,7 +18,7 @@ namespace Characters
         
         private PlayerMovement _movement;
         private CharacterAnimator _animator;
-        private Inventory _inventory;
+        // private Inventory _inventory;
         private Health _health;
         
         // TODO make private
@@ -32,7 +32,7 @@ namespace Characters
         {
             _movement = GetComponent<PlayerMovement>();
             _animator = GetComponent<CharacterAnimator>();
-            _inventory = GetComponent<Inventory>();
+            // _inventory = GetComponent<Inventory>();
             _health = GetComponent<Health>();
         }
 
@@ -41,18 +41,18 @@ namespace Characters
             if(photonView.IsMine == false)
                 return;
             // interacting
-            if (Input.GetKeyDown(KeyCode.Mouse0) && _inventory.ActiveItem != null)
-            {
-                var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-                if (hit)
-                {
-                    // TODO add user interface
-                    
-                    var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
-                    // TODO show hint
-                    obj?.Interact(this);
-                }
-            }
+            // if (Input.GetKeyDown(KeyCode.Mouse0) && _inventory.ActiveItem != null)
+            // {
+            //     var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+            //     if (hit)
+            //     {
+            //         // TODO add user interface
+            //         
+            //         var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
+            //         // TODO show hint
+            //         obj?.Interact(this);
+            //     }
+            // }
         }
 
         private void Start()

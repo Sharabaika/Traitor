@@ -5,19 +5,34 @@ namespace ScriptableItems
 {
     public class PlayerInventory : ItemContainer
     {
-        [SerializeField] private UnityEvent<ItemSlot> OnActiveSlotChanged;
-        
-        
-        private ItemSlot _activeSlot;
-        public ItemSlot ActiveSlot
+        [SerializeField] public UnityEvent<ItemSlot> OnActiveItemChanged;
+        [SerializeField] public UnityEvent<int> OnActiveSlotChanged;
+
+        private int _activeIndex;
+        public ItemSlot ActiveSlot => _itemSlots[_activeIndex];
+        public int ActiveIndex
         {
-            get => _activeSlot;
+            get => _activeIndex;
             set
             {
-                if(_activeSlot == value)
-                    return;
+                _activeIndex = value;
                 OnActiveSlotChanged.Invoke(value);
-                _activeSlot = value;
+                OnActiveItemChanged.Invoke(ActiveSlot);
+            }
+        }
+
+        private void Update()
+        {
+            if(!photonView.IsMine)
+                return;
+            
+            for (int i = 0; i < 5; i++)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+                {
+                    ActiveIndex = i;
+                    break;
+                }
             }
         }
     }
