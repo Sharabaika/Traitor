@@ -32,7 +32,9 @@ namespace Logics
         private bool CanStartVoting(Player initiator)
         {
             // TODO check for number of initiations
-            return _manager.GameIsStarted && !_isVotingNow && _manager.GetPlayersCharacter(initiator).IsAlive;
+            // TODO fix
+            // return _manager.GameIsStarted && !_isVotingNow && _manager.GetPlayersCharacter(initiator).IsAlive;
+            throw new NotImplementedException();
         }
 
         private void Awake()
@@ -80,8 +82,9 @@ namespace Logics
             {
                 _votingStartingTime = (double) value;
             }
-            
-            OnStartVoting?.Invoke(_manager.Characters.ToArray(), (float)RemainingVotingTime);
+         
+            // TODO Fix
+            // OnStartVoting?.Invoke(_manager.Characters.ToArray(), (float)RemainingVotingTime);
         }
 
         private IEnumerator VotingTimer()
@@ -113,10 +116,11 @@ namespace Logics
             _voters.Add(voter);
 
 
-            if (_voters.Count == _manager.AlivePlayers.Count)
-            {
-                EndVoting();
-            }
+            // TODO fix
+            // if (_voters.Count == _manager.AlivePlayers.Count)
+            // {
+            //     EndVoting();
+            // }
         }
         
         [PunRPC] public void EndVoting()

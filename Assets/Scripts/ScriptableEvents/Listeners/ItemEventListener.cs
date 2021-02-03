@@ -1,5 +1,4 @@
-﻿using DapperDino.Events.CustomEvents;
-using DapperDino.Events.Listeners;
+﻿using ScriptableEvents.Events;
 using ScriptableItems;
 using UnityEngine.Events;
 

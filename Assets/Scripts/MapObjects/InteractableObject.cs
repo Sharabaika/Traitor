@@ -1,26 +1,23 @@
-﻿using System;
-using Characters;
+﻿using Characters;
 using Logics;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.Events;
-using UserInterface.InteractableObjectInterfaces;
 
 namespace MapObjects
 {
-    [RequireComponent(typeof(Collider2D))]
+    [RequireComponent(typeof(Collider))]
     public class InteractableObject: MonoBehaviourPunCallbacks
     {
         [SerializeField] private string interactionText;
 
-        [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacter;
+        [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacterLocal;
+        [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacterSync;
         [SerializeField] private bool isOutliningOnMouseOver = true;
 
         [SerializeField] private InteractableObjectStyle style;
-        [SerializeField] protected InteractableObjectInterface ui;
         
-        private SpriteRenderer _renderer;
         
         private bool _isOutlining = false;
         private bool IsOutlining
@@ -29,13 +26,12 @@ namespace MapObjects
             set
             {
                 _isOutlining = value;
-                _renderer.sharedMaterial = value ? style.outlineShader : style.defaultShader;
+                // _renderer.sharedMaterial = value ? style.outlineShader : style.defaultShader;
             }
         }
 
         private void Awake()
         {
-            _renderer = GetComponent<SpriteRenderer>();
             OnAwake();
         }
 
@@ -46,11 +42,7 @@ namespace MapObjects
 
         public virtual void Interact(PlayerCharacter with)
         {
-            if (ui != null)
-            {
-                ui.Display(with);
-            }
-            
+            OnUsedByCharacterLocal?.Invoke(with);
             photonView.RPC("SyncInteraction", RpcTarget.All, with.photonView.Owner);
         }
 
@@ -58,9 +50,9 @@ namespace MapObjects
         {
             Debug.Log(interactor+" interaction with " + gameObject.name + " synced");
 
-            var character = GameManager.Instance.GetPlayersCharacter(interactor);
+            var character = GameManager.Instance.Characters[interactor];
             DefaultInteraction(character);
-            OnUsedByCharacter?.Invoke(character);
+            OnUsedByCharacterSync?.Invoke(character);
         }
         
         protected virtual void DefaultInteraction(PlayerCharacter player)

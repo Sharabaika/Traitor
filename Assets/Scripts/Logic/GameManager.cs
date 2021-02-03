@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
@@ -18,18 +19,13 @@ namespace Logics
         [SerializeField] private int requiredPlayers = 2;
 
         [SerializeField] private UnityEvent<PlayerCharacter> OnLocalPlayerCreated;
-
         [SerializeField] private UnityEvent OnGameStarted;
 
-        private List<PlayerCharacter> _characters;
-        private List<Player> _players;
-        
-        public List<PlayerCharacter> AliveCharacters => _characters.FindAll(character => character.IsAlive);
-        public List<Player> AlivePlayers=> _players.FindAll(player => GetPlayersCharacter(player).IsAlive);
-        
-        public List<PlayerCharacter> Characters => _characters;
-        public List<Player> Players => _players;
-        public List<PlayerCharacter> Impostors => AliveCharacters.FindAll(character => character.IsImposter);
+        public Dictionary<Player, PlayerCharacter> Characters
+        {
+            get;
+            private set;
+        }
 
         private bool _canStartGame = false;
         private bool CanStartGame
@@ -46,8 +42,6 @@ namespace Logics
 
         public static GameManager Instance { get; private set; }
         
-        public PlayerCharacter CurrentCharacter => GetPlayersCharacter(PhotonNetwork.LocalPlayer);
-
         private bool _isGameStarted = false;
 
         public bool GameIsStarted
@@ -68,8 +62,7 @@ namespace Logics
         
         private void Awake()
         {
-            _characters = new List<PlayerCharacter>();
-            _players = new List<Player>();
+            Characters = new Dictionary<Player, PlayerCharacter>();
             _voting = GetComponent<Voting>();
 
             Instance = this;
@@ -79,11 +72,9 @@ namespace Logics
         public void AddPlayer(PlayerCharacter character)
         {
             character.DeathEvent.AddListener(CheckGameState);
-            
-            _characters.Add(character);
-            _players.Add(character.photonView.Owner);
+            Characters.Add(character.photonView.Owner,character);
 
-            if (_characters.Count >= requiredPlayers)
+            if (Characters.Count >= requiredPlayers)
                 CanStartGame = true;
 
             if (character.photonView.IsMine)
@@ -96,8 +87,9 @@ namespace Logics
         {
             if(!PhotonNetwork.IsMasterClient || !CanStartGame) return;
 
-            var impostor = _characters[Random.Range(0, _characters.Count)];
-            impostor.photonView.RPC("SignRoles", RpcTarget.All,true);
+            // pick impostor
+            // var impostor = _characters[Random.Range(0, _characters.Count)];
+            // impostor.photonView.RPC("SignRoles", RpcTarget.All,true);
             
             MovePlayersToSpawnPositions();
             
@@ -109,9 +101,9 @@ namespace Logics
             if(!PhotonNetwork.IsMasterClient)
                 return;
 
-            var delta = 360 / _characters.Count;
+            var delta = 360 / Characters.Count;
             var angle = 0;
-            foreach (var character in _characters)
+            foreach (var character in Characters.Values)
             {
                 if (character.IsAlive)
                 { 
@@ -128,36 +120,25 @@ namespace Logics
             if(player is null)
                 return;
             
-            var character = GetPlayersCharacter(player);
+            var character = Characters[player];
             character.Kill();
         }
 
         public void CheckGameState()
         {
-            if(!PhotonNetwork.IsMasterClient)
-                return;
-
-            var impostors = Impostors.Count;
-            var civs = AliveCharacters.Count - impostors;
-            if (impostors == 0)
-            {
-                Debug.Log("civs win");
-            }
-            else if (impostors >= civs)
-            {
-                Debug.Log("imps win");
-            }
+            throw new NotImplementedException();
         }
 
-        [PunRPC]private void EndGame()
+        private void EndGame()
         {
-            Debug.Log("end of game");
+            throw new NotImplementedException();
+
         }
 
         public void FreezePlayers()
         {
             Debug.Log("Players are frozen");
-            foreach (var character in _characters)
+            foreach (var character in Characters.Values)
             {
                 character.Freeze();
             }
@@ -166,17 +147,10 @@ namespace Logics
         public void UnfreezePlayers()
         {
             Debug.Log("Players are unfrozen");
-            foreach (var character in _characters)
+            foreach (var character in Characters.Values)
             {
                 character.Unfreeze();
             }
-        }
-        
-        
-        public PlayerCharacter GetPlayersCharacter(Player player)
-        {
-            var i = _players.IndexOf(player);
-            return _characters[i];
         }
     }
 }

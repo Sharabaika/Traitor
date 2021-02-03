@@ -6,23 +6,43 @@ using UnityEngine;
 
 namespace UserInterface.Inventory
 {
-    [ExecuteAlways] public class ItemContainerUI : MonoBehaviour
+    public class ItemContainerUI : MonoBehaviour
     {
         [SerializeField] protected ItemContainer itemContainer;
         [SerializeField] private ItemSlotUI ItemSlotUIPrefab;
         [SerializeField] private Transform SlotsHolder;
-        [SerializeField] private Canvas firstPriorityCanvas;
+        [SerializeField] private Canvas canvas;
+        
+        private Canvas _firstPriorityCanvas;
+        public Canvas FirstPriorityCanvas => _firstPriorityCanvas;
 
-        public Canvas FirstPriorityCanvas => firstPriorityCanvas;
+        [SerializeField]protected List<ItemSlotUI> _slotUIs = new List<ItemSlotUI>();
 
-        protected List<ItemSlotUI> _slotUIs = new List<ItemSlotUI>();
+        public void Show()
+        {
+            canvas.gameObject.SetActive(true);   
+            DisplaySlots();
+        }
+
+        public void Hide()
+        {
+            canvas.gameObject.SetActive(false);
+        }
+        
 
         [ContextMenu("Display slots")]
         public void DisplaySlots()
         {
+            if (FirstPriorityCanvas is null)
+            {
+                _firstPriorityCanvas = FindObjectOfType<FirstPriorityCanvas>().GetComponent<Canvas>();
+            }
+            
             if(itemContainer is null)
                 return;
-            
+            if(SlotsHolder is null)
+                return;
+
             ClearAll();
 
             for (int i = 0; i < itemContainer.Capacity; i++)

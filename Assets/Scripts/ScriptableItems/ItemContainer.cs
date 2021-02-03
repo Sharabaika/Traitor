@@ -70,15 +70,15 @@ namespace ScriptableItems
 
         protected void OnValidate()
         {
-            if (Capacity != _previousCapacity)
-            {
-                OnInventoryReshape?.Invoke();
-                _previousCapacity = Capacity;
-            }
-            else
-            {
-                onItemsUpdated.Invoke();
-            }
+            // if (Capacity != _previousCapacity)
+            // {
+            //     OnInventoryReshape?.Invoke();
+            //     _previousCapacity = Capacity;
+            // }
+            // else
+            // {
+            //     onItemsUpdated.Invoke();
+            // }
         }
     }
 }

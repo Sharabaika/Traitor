@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using UserInterface.InteractableObjectInterfaces;
+﻿using UnityEngine;
 using UserInterface.Voting;
 
 namespace UserInterface

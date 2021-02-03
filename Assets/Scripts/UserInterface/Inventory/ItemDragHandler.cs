@@ -1,5 +1,4 @@
 ﻿using System;
-using DapperDino.Events.CustomEvents;
 using ScriptableEvents.Events;
 using ScriptableItems;
 using UnityEngine;
@@ -77,7 +76,7 @@ namespace UserInterface.Inventory
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            OnStartHoveringItem.Raise(itemSlotUi.ItemSlot.Item);
+            OnStartHoveringItem?.Raise(itemSlotUi.ItemSlot.Item);
             IsHovering = true;
             
         }

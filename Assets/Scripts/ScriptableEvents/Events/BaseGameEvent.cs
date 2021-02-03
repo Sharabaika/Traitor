@@ -1,9 +1,8 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
-using DapperDino.Events.Listeners;
+﻿using System.Collections.Generic;
 using ScriptableEvents.Listeners;
+using UnityEngine;
 
-namespace DapperDino.Events.CustomEvents
+namespace ScriptableEvents.Events
 {
     public abstract class BaseGameEvent<T> : ScriptableObject
     {

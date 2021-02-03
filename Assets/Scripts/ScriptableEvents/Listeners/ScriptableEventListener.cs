@@ -1,4 +1,4 @@
-﻿using DapperDino.Events.CustomEvents;
+﻿using ScriptableEvents.Events;
 using UnityEngine;
 using UnityEngine.Events;
 
