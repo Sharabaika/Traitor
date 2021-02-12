@@ -1,11 +1,16 @@
-﻿using Character;
+﻿using System;
+using Character;
 using Cinemachine;
+using ExitGames.Client.Photon;
 using Logics;
 using MapObjects;
 using Photon.Pun;
+using Photon.Realtime;
 using ScriptableItems;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering.VirtualTexturing;
 
 namespace Characters
 {
@@ -16,43 +21,76 @@ namespace Characters
 
         [SerializeField] private int otherPlayerLayer;
         [SerializeField] private int currentPlayerLayer;
-        
-        private PlayerMovement _movement;
-        private CharacterAnimator _animator;
-        private PlayerInventory _inventory;
-        private Health _health;
-        
-        // TODO make private
-        public bool IsImposter = false;
 
+        [SerializeField] private float maxInteractionDist = 2f;
+
+        [SerializeField] public UnityEvent DeathEvent;
+        
+        public PlayerMovement Movement { get; private set; }
+        public CharacterAnimator Animator{ get; private set; }
+        public PlayerInventory Inventory{ get; private set; }
+        public Health Health{ get; private set; }
+        
+        public GameManager.Classes Class { get; private set; }
+        public GameManager.Roles Role { get; private set; }
+        
         public bool IsAlive { get; private set; } = true;
         
-        public UnityEvent DeathEvent;
+        public Vector3 PointOfLook { get; private set; }
+
+        private InteractableObject _activeInteractableObject;
+
+        public InteractableObject ActiveInteractableObject
+        {
+            get => _activeInteractableObject;
+            set
+            {
+                ActiveInteractableObject?.StopInteracting(this);
+                _activeInteractableObject = value;
+                ActiveInteractableObject?.Interact(this);
+            }
+        }
 
         private void Awake()
         {
-            _movement = GetComponent<PlayerMovement>();
-            _animator = GetComponent<CharacterAnimator>();
-            _inventory = GetComponent<PlayerInventory>();
-            _health = GetComponent<Health>();
+            Movement = GetComponent<PlayerMovement>();
+            Animator = GetComponent<CharacterAnimator>();
+            Inventory = GetComponent<PlayerInventory>();
+            Health = GetComponent<Health>();
         }
 
         private void Update()
         {
             if(photonView.IsMine == false)
                 return;
-            // interacting
-            if (Input.GetKeyDown(KeyCode.Mouse0))
+
+            
+            
+            // out of dist
+            if (ActiveInteractableObject != null)
             {
-                var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                
-                if (Physics.Raycast(ray, out var hit))
+                if (Vector3.Distance(ActiveInteractableObject.transform.position, transform.position) >
+                    maxInteractionDist)
+                {
+                    ActiveInteractableObject = null;
+                }
+            }
+            
+            // interacting
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var hit))
+            {
+                PointOfLook = hit.point;
+                if (Input.GetKeyDown(KeyCode.Mouse0))
                 {
                     // TODO add user interface
-                    
-                    var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
-                    // TODO show hint
-                    obj?.Interact(this);
+                    if (Vector3.Distance(transform.position, hit.collider.transform.position) < maxInteractionDist)
+                    {
+                        var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
+                        // TODO show hint
+                        if(obj != null)
+                            ActiveInteractableObject = obj;
+                    }
                 }
             }
         }
@@ -82,12 +120,12 @@ namespace Characters
 
         public void Freeze()
         {
-            _movement.IsFrozen = true;
+            Movement.IsFrozen = true;
         }
 
         public void Unfreeze()
         {
-            _movement.IsFrozen = false;
+            Movement.IsFrozen = false;
         }
         
         [PunRPC]public void Die()
@@ -104,15 +142,31 @@ namespace Characters
         }
         
 
-        [PunRPC] public void SignRoles(bool isImposter)
-        {
-            IsImposter = isImposter;
-        }
-
         [PunRPC] public void RelocateTo(Vector3 position)
         {
-            _movement.Velocity = Vector3.zero;
+            Movement.Velocity = Vector3.zero;
             transform.position = position;
+        }
+
+        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+        {
+            if (targetPlayer == photonView.Owner)
+            {
+                // check roles
+                if (changedProps.TryGetValue("Role", out var str))
+                {
+                    if (Enum.TryParse((string)str, out GameManager.Roles res))
+                    {
+                        Role = res;
+                        Debug.Log(photonView.Owner.NickName+ " signed role of " + Role.ToString());
+                    }
+                }
+            }
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            // Handles.DrawWireDisc(transform.position,Vector3.up, maxInteractionDist);
         }
     }
 }

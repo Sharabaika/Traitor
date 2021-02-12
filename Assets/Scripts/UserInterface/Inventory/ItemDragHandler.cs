@@ -76,7 +76,7 @@ namespace UserInterface.Inventory
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            OnStartHoveringItem?.Raise(itemSlotUi.ItemSlot.Item);
+            OnStartHoveringItem?.Raise(itemSlotUi.ItemSlot.ItemInstance.Data);
             IsHovering = true;
             
         }

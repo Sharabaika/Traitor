@@ -1,4 +1,5 @@
-﻿using ScriptableItems;
+﻿using Items.ScriptableItems;
+using ScriptableItems;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -41,7 +42,7 @@ namespace UserInterface.Inventory
                 return;
             }
             EnableSlotUI(true);
-            icon.sprite = ItemSlot.Item.Icon;
+            icon.sprite = ItemSlot.ItemInstance.Data.Icon;
             itemQuantityText.text = ItemSlot.Quantity.ToString();
         }
 

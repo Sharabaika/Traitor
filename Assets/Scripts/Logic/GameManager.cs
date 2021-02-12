@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
@@ -7,18 +8,37 @@ using Random = UnityEngine.Random;
 using Characters;
 using UnityEngine.Events;
 using UserInterface;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 namespace Logics
 {
     public class GameManager : MonoBehaviourPunCallbacks
-    { 
-        [SerializeField] private PlayerCharacter playerPrefab;
-        [SerializeField] private Transform homePoint;
-        [SerializeField] private UI userInterface;
+    {
         
+        public enum Roles
+        {
+            Serb, Croat, Murderer,Survivor
+        }
+
+        // TODO need classes
+        public enum Classes
+        {
+            Hunter, // reads the tracks, starts with rifle
+            Gypsy,  // 6 inventory slots, starts with coins and slipping baby
+            Medic,  // reads wounds, starts with first aid kit
+            
+        }
+
+        [SerializeField] private PlayerCharacter playerPrefab;
+
+        [SerializeField] private Transform homePoint;
+
+        [SerializeField] private UI userInterface;
+
         [SerializeField] private int requiredPlayers = 2;
 
         [SerializeField] private UnityEvent<PlayerCharacter> OnLocalPlayerCreated;
+
         [SerializeField] private UnityEvent OnGameStarted;
 
         public Dictionary<Player, PlayerCharacter> Characters
@@ -44,18 +64,6 @@ namespace Logics
         
         private bool _isGameStarted = false;
 
-        public bool GameIsStarted
-        {
-            get => _isGameStarted;
-            private set
-            {
-                if (value && _isGameStarted == false)
-                {
-                    _isGameStarted = true;
-                    OnGameStarted?.Invoke();
-                }
-            }
-        }
 
         private Voting _voting;
         
@@ -86,14 +94,40 @@ namespace Logics
         public void StartGame()
         {
             if(!PhotonNetwork.IsMasterClient || !CanStartGame) return;
-
-            // pick impostor
-            // var impostor = _characters[Random.Range(0, _characters.Count)];
-            // impostor.photonView.RPC("SignRoles", RpcTarget.All,true);
-            
+            SingRoles();
+            SingClasses();
             MovePlayersToSpawnPositions();
+        }
+
+        private void SingClasses()
+        {
+            var classes = Enum.GetNames(typeof(Classes));
+            foreach (var player in Characters.Keys)
+            {
+                var hash = new Hashtable{{"Class",classes[Random.Range(0,classes.Length)]}};
+                player.SetCustomProperties(hash);
+            }
+        }
+        
+        private void SingRoles()
+        {
+            var players = Characters.Keys.ToList();
+
+            var serbian = players[Random.Range(0, players.Count)];
+            var sHash = new Hashtable{{"Role", Roles.Serb.ToString()}};
+            serbian.SetCustomProperties(sHash);
+            players.Remove(serbian);
             
-            GameIsStarted = true;
+            var croat = players[Random.Range(0, players.Count)];
+            var cHash = new Hashtable{{"Role", Roles.Croat.ToString()}};
+            croat.SetCustomProperties(cHash);
+            players.Remove(croat);
+
+            var hash = new Hashtable{{"Role",Roles.Survivor.ToString()}};
+            foreach (var player in players)
+            {
+                player.SetCustomProperties(hash);
+            }
         }
 
         public void MovePlayersToSpawnPositions()

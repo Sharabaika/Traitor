@@ -4,5 +4,5 @@ using UnityEngine.Events;
 
 namespace ScriptableEvents.Listeners
 {
-    public class ItemEventListener : ScriptableEventListener<Item, ItemEvent, UnityEvent<Item>> { }
+    public class ItemEventListener : ScriptableEventListener<ItemData, ItemEvent, UnityEvent<ItemData>> { }
 }

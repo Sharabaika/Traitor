@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ExitGames.Client.Photon;
+using Items.ScriptableItems;
 using Photon.Pun;
 using Photon.Realtime;
 using ScriptableItems;
@@ -23,10 +24,7 @@ namespace Networking.Items
             for (var i = 0; i < container.Capacity; i++)
             {
                 var slot = container.GetSlotByIndex(i);
-                var id = itemList.GetItemID(slot.Item);
-                var quantity = slot.Quantity;
-
-                builder.Append(id).Append(":").Append(quantity).Append(" ");
+                builder.Append(SerializeSlot(slot)).Append(' ');
             }
 
             var hash = new Hashtable {{key, builder.ToString()}};
@@ -38,23 +36,50 @@ namespace Networking.Items
             if (propertiesThatChanged.TryGetValue(GetKey(), out var data))
             {
                 var str = (string) data;
-                Debug.Log(str);
-                var slots = str.TrimEnd().Split(' ');
+                var slotsData = str.TrimEnd().Split(' ');
 
                 var i = 0;
-                foreach (var slot in slots)
+                foreach (var slotData in slotsData)
                 {
-                    var parsedSlot = slot.Split(':');
                     var containerSlot = container.GetSlotByIndex(i);
-                    
-                    containerSlot.Item =itemList.GetItemByID(int.Parse(parsedSlot[0]));
-                    containerSlot.Quantity = int.Parse(parsedSlot[1]);
                     i++;
-                }
-                
-                container.onItemsSynchronized?.Invoke();
+                    
+                    if(SerializeSlot(containerSlot) == slotData)
+                        continue;
 
+                    var parsedSlot = slotData.Split(':');
+
+                    var q =int.Parse(parsedSlot[0]);
+                    containerSlot.Quantity = q;
+                    if (q > 0)
+                    {
+                        var id = int.Parse(parsedSlot[1]);
+                        var state = parsedSlot[2];
+                        containerSlot.ItemInstance =itemList.GetItemInstance(id);
+                        containerSlot.ItemInstance.DeserializeState(state);
+                    }
+                }
+                container.onItemsSynchronized?.Invoke();
             }
+        }
+
+        private string SerializeSlot(ItemSlot slot)
+        {
+            if (slot.IsEmpty)
+                return "0";
+            
+            var builder = new StringBuilder();
+
+            var quantity = slot.Quantity;
+            var id = itemList.GetItemDataID(slot.ItemInstance);
+            var state = slot.ItemInstance.SerializeState();
+
+            builder.
+                    Append(quantity).Append(":").
+                    Append(id).Append(":").
+                    Append(state);
+            
+            return builder.ToString();
         }
     }
 }

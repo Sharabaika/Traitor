@@ -51,12 +51,12 @@ namespace Hel.Items
             popupObject.transform.position = newPos;
         }
 
-        public void DisplayInfo(Item infoItem)
+        public void DisplayInfo(ItemData infoItemData)
         {
             var builder = new StringBuilder();
 
-            builder.Append("<size=75>").Append(infoItem.Name).Append("</size>\n");
-            builder.Append(infoItem.Description);
+            builder.Append("<size=75>").Append(infoItemData.Name).Append("</size>\n");
+            builder.Append(infoItemData.Description);
 
             infoText.text = builder.ToString();
 

@@ -69,6 +69,7 @@ namespace UserInterface.Inventory
 
         public void UpdateSlots()
         {
+            Debug.Log("update ui");
             foreach (var ui in _slotUIs)
             {
                 ui.UpdateSlotUI();

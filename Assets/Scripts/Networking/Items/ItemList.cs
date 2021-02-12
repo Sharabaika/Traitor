@@ -1,4 +1,5 @@
 ﻿using System;
+using Items.ItemInstances;
 using ScriptableItems;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -8,18 +9,30 @@ namespace Networking.Items
     [CreateAssetMenu(fileName = "New ItemList", menuName = "Networking/Items/ItemList", order = 0)]
     public class ItemList : ScriptableObject
     {
-        [SerializeField] private Item[] _items;
+        [SerializeField] private ItemData[] _items;
 
-        public Item GetItemByID(int ID)
+        public ItemData GetItemData(int ID)
         {
-            return ID > -1 ? _items[ID] : null;
+            return ID > 0 ? _items[ID-1] : null;
         }
 
-        public int GetItemID(Item item)
+        public int GetItemDataID(ItemData itemData)
         {
-            if (item is null)
-                return -1;
-            return Array.IndexOf(_items, item);
+            if (itemData is null)
+                return 0;
+            return Array.IndexOf(_items, itemData)+1;
+        }
+
+        public ItemInstance GetItemInstance(int id)
+        {
+            return GetItemData(id).GetItemInstance();
+        }
+
+        public int GetItemDataID(ItemInstance instance)
+        {
+            if (instance is null || instance.Data is null)
+                return 0;
+            return GetItemDataID(instance.Data);
         }
     }
 }

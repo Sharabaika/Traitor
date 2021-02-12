@@ -1,24 +1,28 @@
 ﻿using System;
 using System.Linq;
+using Items.ItemInstances;
+using Items.ScriptableItems;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace ScriptableItems
 {
-    [ExecuteInEditMode]public class ItemContainer : MonoBehaviourPun
+    public class ItemContainer : MonoBehaviourPun
     {
         [SerializeField] public UnityEvent onItemsUpdated;
         [SerializeField] public UnityEvent onItemsSynchronized;
         [SerializeField] public UnityEvent OnInventoryReshape;
-        [SerializeField] protected ItemSlot[] _itemSlots = new ItemSlot[20];
+        [SerializeField] protected ItemContainerSerializableSlot[] slots = new ItemContainerSerializableSlot[20];
         
-        public int Capacity => _itemSlots.Length;
+        protected ItemSlot[] itemSlots;
+        
+        public int Capacity => itemSlots.Length;
         private int _previousCapacity;
         
         public ItemSlot GetSlotByIndex(int index)
         {
-            return _itemSlots[index];
+            return itemSlots[index];
         }
         
         public void Combine(ItemSlot itemsToAdd, ItemSlot target)
@@ -26,10 +30,10 @@ namespace ScriptableItems
             if(itemsToAdd == target)
                 return;
             
-            if (itemsToAdd.Item == target.Item)
+            if (ItemInstance.CanStack(itemsToAdd.ItemInstance, target.ItemInstance))
             {
                 var quantity = target.Quantity + itemsToAdd.Quantity;
-                quantity = Mathf.Min(quantity, target.Item.MaxStack);
+                quantity = Mathf.Min(quantity, target.ItemInstance.Data.MaxStack);
                 itemsToAdd.Quantity = itemsToAdd.Quantity - (quantity - target.Quantity);
                 target.Quantity = quantity;
             }
@@ -42,30 +46,56 @@ namespace ScriptableItems
             
         }
 
-        public bool HasItem(Item item)
+        public bool HasItem(ItemData itemData)
         {
-            foreach (var itemSlot in _itemSlots)
+            foreach (var itemSlot in itemSlots)
             {
                 if(itemSlot.IsEmpty)
                     continue;
-                if (itemSlot.Item == item)
+                if (itemSlot.ItemInstance.Data == itemData)
                     return true;
             }
 
             return false;
         }
 
-        public int Count(Item itemsToCount)
+        public int Count(ItemData itemsDataToCount)
         {
             var quantity = 0;
-            foreach (var itemSlot in _itemSlots)
+            foreach (var itemSlot in itemSlots)
             {
                 if(itemSlot.IsEmpty)
                     continue;
-                if(itemSlot.Item == itemsToCount)
+                if(itemSlot.ItemInstance.Data == itemsDataToCount)
                     quantity += itemSlot.Quantity;
             }
             return quantity;
+        }
+
+        private void Awake()
+        {
+            itemSlots = new ItemSlot[slots.Length];
+            for (int i = 0; i < Capacity; i++)
+            {
+                var slot = slots[i];
+                if (slot.IsEmpty)
+                {
+                    itemSlots[i] = new ItemSlot();
+                }
+                else
+                {
+                    itemSlots[i] = new ItemSlot(slot.quantity, slot.data.GetItemInstance());
+                }
+            }
+            OnAwake();
+            
+            if(photonView.IsMine)
+                onItemsUpdated.Invoke();
+        }
+
+        protected virtual void OnAwake()
+        {
+            
         }
 
         protected void OnValidate()
@@ -80,5 +110,12 @@ namespace ScriptableItems
             //     onItemsUpdated.Invoke();
             // }
         }
+    }
+
+    [Serializable] public struct ItemContainerSerializableSlot
+    {
+        [Min(0)] public int quantity;
+        public ItemData data;
+        public bool IsEmpty => quantity == 0 || data is null;
     }
 }

@@ -36,8 +36,8 @@ namespace Characters
                 // Movement
                 var dir = new Vector3(
                     Input.GetAxisRaw("Horizontal"),
-                    Input.GetAxisRaw("Vertical"),
-                    0f).normalized;
+                    0f,
+                    Input.GetAxisRaw("Vertical")).normalized;
 
                 Velocity = dir * speed;
 

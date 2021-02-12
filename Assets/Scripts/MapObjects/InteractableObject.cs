@@ -14,6 +14,7 @@ namespace MapObjects
 
         [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacterLocal;
         [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacterSync;
+        [SerializeField] private UnityEvent<PlayerCharacter> OnLooseInterestLocal;
         [SerializeField] private bool isOutliningOnMouseOver = true;
 
         [SerializeField] private InteractableObjectStyle style;
@@ -44,6 +45,11 @@ namespace MapObjects
         {
             OnUsedByCharacterLocal?.Invoke(with);
             photonView.RPC("SyncInteraction", RpcTarget.All, with.photonView.Owner);
+        }
+
+        public virtual void StopInteracting(PlayerCharacter with)
+        {
+            OnLooseInterestLocal?.Invoke(with);
         }
 
         [PunRPC] public void SyncInteraction(Player interactor)

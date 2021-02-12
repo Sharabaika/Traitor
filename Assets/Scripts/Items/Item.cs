@@ -1,17 +1,15 @@
 ﻿using Characters;
+using Items.ItemInstances;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Items
 {
-    public class Item : MonoBehaviourPun
-    {
-        
-        
-        [SerializeField] protected GameObject sprite;
+    public class Item : MonoBehaviour
+    { 
+        [SerializeField] protected GameObject model;
         [SerializeField] protected UnityEvent OnUse;
-        [SerializeField] protected bool isSync = true;
         
         private bool _isHidden = false;
         public bool isHidden
@@ -20,22 +18,20 @@ namespace Items
             set
             {
                 _isHidden = value; 
-                sprite.SetActive(!value);
+                model.SetActive(!value);
             }
         }
-
-        [PunRPC]public virtual void SyncInteraction()
-        {
-            OnUse?.Invoke();
-        }
+        
+        public ItemInstance RepresentationOf { get; set; }
         
         public virtual void Use(PlayerCharacter by)
         {
-            if (isSync)
-            {
-                photonView.RPC("SyncInteraction", RpcTarget.Others);
-            }
+            OnUse?.Invoke();
             Debug.Log(by + " used " + gameObject.name);
+        }
+
+        public virtual void HandlePositioning(PlayerCharacter owner)
+        {
         }
     }
 }
