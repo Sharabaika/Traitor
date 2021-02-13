@@ -19,13 +19,13 @@ namespace Items.ItemInstances
             var data = (WeaponData) Data;
 
             var position = character.Inventory.AnchorTransform.position;
-            var direction = character.PointOfLook - position;
+            var direction = (character.PointOfLook - position).normalized;
             var ray = new Ray(position, direction);
             
             if (Physics.Raycast(ray,out var hit ,data.MaxDist, data.RaycastMasc))
             {
                 var damageable = hit.collider.GetComponent<IDamageable>();
-                damageable?.TakeDamage(data.Damage);
+                damageable?.TakeHit(direction, hit.point, data.Damage, data.DamageSourceDescription);
                 Debug.Log(hit.collider.gameObject.name);
             }
         }

@@ -7,36 +7,34 @@ namespace Characters
 {
     public class Health : MonoBehaviourPun, IDamageable
     {
-        [SerializeField] private float startingHealth;
-        [SerializeField] private UnityEvent<float> healthChanged;
+        [SerializeField] private UnityEvent<int> healthChanged;
+        [SerializeField]private int health;
 
-        public float RemainingHealth
+        public string damageLog  = "";
+
+        public int RemainingHealth
         {
-            get=> _health;
+            get=> health;
             private set
             {
-                _health = value;
+                health = value;
                 healthChanged?.Invoke(value);
-                if(RemainingHealth<=0)
-                    GetComponent<PlayerCharacter>().Die();
+                // if(RemainingHealth<=0)
+                //     GetComponent<PlayerCharacter>().Die();
             }
         }
-        private float _health;
 
-        public void TakeDamage(float damage)
+        public void TakeHit(Vector3 hitDirection, Vector3 point, int damage, string damageSource)
         {
-            photonView.RPC("RPC_TakeDamage", RpcTarget.All, damage);
+            photonView.RPC("RPC_TakeHit", RpcTarget.All, hitDirection, point, damage, damageSource);
         }
 
-        [PunRPC] private void RPC_TakeDamage(float damage)
+        [PunRPC] public void RPC_TakeHit(Vector3 hitDirection, Vector3 point, int damage, string damageSource)
         {
             RemainingHealth -= damage;
-            Debug.Log(photonView.Owner + " took " + damage + " damage");
-        }
+            damageLog += $"took {damage} damage from {damageSource}\n";
 
-        private void Awake()
-        {
-            RemainingHealth = startingHealth;
+            Debug.Log(photonView.Owner + " took " + damage + " damage");
         }
     }
 }
