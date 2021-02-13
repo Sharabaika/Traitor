@@ -143,7 +143,6 @@ namespace Characters
 
         [PunRPC] public void RelocateTo(Vector3 position)
         {
-            Movement.Velocity = Vector3.zero;
             transform.position = position;
         }
 

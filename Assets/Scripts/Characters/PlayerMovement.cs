@@ -1,86 +1,61 @@
 ﻿using Character;
 using Photon.Pun;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 
 namespace Characters
 {
     [RequireComponent(typeof(PhotonView), typeof(CharacterAnimator))]
-    public class PlayerMovement : MonoBehaviour, IPunObservable
+    public class PlayerMovement : MonoBehaviourPun
     {
         [SerializeField] private float speed = 1.5f;
-        [SerializeField] private Transform anchor;
+        [SerializeField] private float minSpeed = 0.01f;
         
-        private Camera _camera;
-        private PhotonView _photonView;
         private CharacterAnimator _animator;
+        private PlayerCharacter _character;
+        private Rigidbody _rigidbody;
 
-        private Vector3 _lookDirection;
+        private bool _isFrozen = false;
 
-        public Vector3 Velocity { get; set; }
-        private float _lastMovementTime = 0f;
+        public bool IsFrozen
+        {
+            get => _isFrozen;
+            set
+            {
+                _isFrozen = value;
+                if(value)
+                    _rigidbody.velocity = Vector3.zero;
+            }
+        }
 
-        public Vector2 PointOfLook { get; private set; }
-        public bool IsFrozen { get; set; }
-        
         private void Start()
         {
-            _photonView = GetComponent<PhotonView>();
             _animator = GetComponent<CharacterAnimator>();
-            _camera = Camera.main;
+            _character = GetComponent<PlayerCharacter>();
+            _rigidbody = GetComponent<Rigidbody>();
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
-            if (_photonView.IsMine)
+            if (photonView.IsMine)
             {
-                // Movement
-                var dir = new Vector3(
-                    Input.GetAxisRaw("Horizontal"),
-                    0f,
-                    Input.GetAxisRaw("Vertical")).normalized;
-
-                Velocity = dir * speed;
-
-                PointOfLook = _camera.ScreenToWorldPoint(Input.mousePosition);
+                Vector3 velocity;
+                if (IsFrozen)
+                {
+                    velocity = Vector3.zero;
+                }
+                else
+                {
+                    var dir = new Vector3(
+                        Input.GetAxisRaw("Horizontal"),
+                        0f,
+                        Input.GetAxisRaw("Vertical")).normalized;
+                    velocity = dir * speed;
+                }
+                _rigidbody.velocity = velocity;
             }
-
-            Move(Velocity);
-            LookAtCursor();
-        }
-
-        private void LookAtCursor()
-        {
-            _animator.IsLookingRight = (PointOfLook.x - anchor.position.x)> 0;
-        }
-
-        private void Move(Vector3 velocity)
-        {
-            if(IsFrozen) velocity = Vector3.zero;
-
-            _animator.Movement(velocity);
-            
-            transform.Translate(velocity * (Time.time - _lastMovementTime), Space.World);
-            _lastMovementTime = Time.time;
-        }
-
-
-        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-        {
-            if (stream.IsWriting)
-            {
-                stream.SendNext(transform.position);
-                stream.SendNext(Velocity);
-                stream.SendNext(PointOfLook);
-            }
-            else
-            {
-                transform.position = (Vector3)stream.ReceiveNext();
-                Velocity = (Vector3) stream.ReceiveNext();
-                PointOfLook = (Vector2) stream.ReceiveNext();
-
-                // ???
-                // Move(_velocity);
-            }
+            _animator.Movement(_rigidbody.velocity);
+            _animator.IsLookingRight = (_character.PointOfLook.x - transform.position.x)> 0;
         }
     }
 }
