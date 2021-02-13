@@ -22,7 +22,6 @@ namespace ScriptableItems
         public override ItemInstance GetItemInstance()
         {
             return new WeaponInstance(this, ammoCapacity);
-            Physics.Raycast(Vector3.zero, Vector3.forward);
         }
     }
 }

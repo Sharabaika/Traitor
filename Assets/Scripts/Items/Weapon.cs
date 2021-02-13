@@ -1,16 +1,42 @@
 ﻿using Characters;
-using Misc;
-using Photon.Pun;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Items
 {
     public class Weapon : Item
     {
-        public override void HandlePositioning(PlayerCharacter owner)
+        [SerializeField] private float swingSmoothing = 15;
+
+        private Quaternion _targetRotation;
+
+        protected override void OnUpdate()
         {
-            transform.LookAt(owner.PointOfLook);
+            if (isHidden == false && HasOwner)
+            {
+                // position + direction = point
+                // direction = point - position
+                
+                var direction = Owner.PointOfLook - transform.position;
+                
+                _targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+
+                if (OwnerIsLocal)
+                {
+                    transform.rotation = _targetRotation;
+                }
+                else
+                {
+                    // rough
+                    // transform.rotation = 
+                    // Quaternion.RotateTowards(transform.rotation, _targetRotation, Time.deltaTime * swingSpeed);
+
+                    // smooth
+                    transform.rotation = Quaternion.Slerp(transform.rotation, _targetRotation,
+                        Time.deltaTime * swingSmoothing);
+                }
+                
+            }
+            
         }
     }
 }

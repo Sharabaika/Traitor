@@ -16,10 +16,12 @@ namespace Items.ItemInstances
 
         public override void UseBy(PlayerCharacter character)
         {
-            var anchor = character.Inventory.AnchorTransform;
             var data = (WeaponData) Data;
 
-            var ray = new Ray(anchor.position, anchor.forward);
+            var position = character.Inventory.AnchorTransform.position;
+            var direction = character.PointOfLook - position;
+            var ray = new Ray(position, direction);
+            
             if (Physics.Raycast(ray,out var hit ,data.MaxDist, data.RaycastMasc))
             {
                 var damageable = hit.collider.GetComponent<IDamageable>();

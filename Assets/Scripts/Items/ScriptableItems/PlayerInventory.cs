@@ -5,6 +5,7 @@ using Characters;
 using Items;
 using Items.ItemInstances;
 using Items.ScriptableItems;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.PlayerLoop;
@@ -19,12 +20,12 @@ namespace ScriptableItems
         [SerializeField] private Transform anchor;
 
         private Dictionary<ItemInstance, Item> _items;
-
         private PlayerCharacter _character;
-
         private int _activeIndex;
+        
         public ItemSlot ActiveSlot => itemSlots[_activeIndex];
         public Item ActiveItem { get; private set; }
+        public Transform AnchorTransform => anchor;
 
         public int ActiveIndex
         {
@@ -36,7 +37,8 @@ namespace ScriptableItems
                     ActiveItem.isHidden = true;
                 }
                 _activeIndex = value;
-                if (ActiveSlot.ItemInstance is null)
+                // if (ActiveSlot.ItemInstance is null)
+                if (ActiveSlot.IsEmpty)
                 {
                     ActiveItem = null;
                 }
@@ -59,8 +61,6 @@ namespace ScriptableItems
             }
         }
 
-        public Transform AnchorTransform => anchor;
-
         private void CreateItemRepresentations()
         {
             // check inventory slots
@@ -78,18 +78,32 @@ namespace ScriptableItems
                     // create missing item
                     var item = Instantiate(slot.ItemInstance.Data.Item, anchor, false);
                     item.isHidden = true;
+                    item.HandlePositioning(_character);
                     _items.Add(slot.ItemInstance, item);
                 }
             }
+            
             // remove redundant items
-            foreach (var itemInstance in _items.Keys)
+            var itemsToRemove = new List<ItemInstance>();
+            var itemsToDestroy = new List<Item>();
+            foreach (var pair in _items)
             {
+                var itemInstance = pair.Key;
                 if (itemSlots.Any((slot => slot.ItemInstance == itemInstance)) == false)
                 {
-                    var item = _items[itemInstance];
-                    Destroy(item.gameObject);
-                    _items.Remove(itemInstance);
+                    itemsToRemove.Add(itemInstance);
+                    itemsToDestroy.Add(pair.Value);
                 }
+            }
+
+            foreach (var itemInstance in itemsToRemove)
+            {
+                _items.Remove(itemInstance);
+            }
+
+            foreach (var item in itemsToDestroy)
+            {
+                Destroy(item.gameObject);
             }
         }
 
@@ -98,6 +112,15 @@ namespace ScriptableItems
             CreateItemRepresentations();
             ActiveIndex = ActiveIndex;
         }
+        
+        [PunRPC] public void UseActiveItem()
+        {
+            if(ActiveSlot.IsEmpty)
+                return;
+            if (photonView.IsMine)
+                ActiveSlot.ItemInstance.UseBy(_character);
+            ActiveItem.Use(_character);
+        }
 
         protected override void OnAwake()
         {
@@ -105,24 +128,27 @@ namespace ScriptableItems
             
             _items = new Dictionary<ItemInstance, Item>();
             CreateItemRepresentations();
+            
             ActiveIndex = 0;
         }
 
         private void OnEnable()
         {
             onItemsUpdated.AddListener(OnItemsUpdated);
+            onItemsSynchronized.AddListener(OnItemsUpdated);
         }
 
         private void OnDisable()
         {
             onItemsUpdated.RemoveListener(OnItemsUpdated);
+            onItemsSynchronized.RemoveListener(OnItemsUpdated);
         }
 
         private void Update()
         {
             if (!photonView.IsMine)
                 return;
-            
+
             // active slot
             for (int i = 0; i < Capacity; i++)
             {
@@ -132,10 +158,11 @@ namespace ScriptableItems
                     break;
                 }
             }
-            
-            // look
-            if(ActiveSlot.IsEmpty == false)
-                ActiveItem.HandlePositioning(_character);
+
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                photonView.RPC("UseActiveItem", RpcTarget.All);
+            }
         }
     }
 }

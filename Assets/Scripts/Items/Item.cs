@@ -1,4 +1,5 @@
-﻿using Characters;
+﻿using System;
+using Characters;
 using Items.ItemInstances;
 using Photon.Pun;
 using UnityEngine;
@@ -10,7 +11,22 @@ namespace Items
     { 
         [SerializeField] protected GameObject model;
         [SerializeField] protected UnityEvent OnUse;
+
+        private PlayerCharacter _owner;
         
+        protected bool OwnerIsLocal { get; private set; }
+        public bool HasOwner { get; private set; }
+        protected PlayerCharacter Owner
+        {
+            get => _owner;
+            set
+            {
+                _owner = value;
+                HasOwner = value != null;
+            }
+        }
+
+
         private bool _isHidden = false;
         public bool isHidden
         {
@@ -22,16 +38,23 @@ namespace Items
             }
         }
         
-        public ItemInstance RepresentationOf { get; set; }
-        
         public virtual void Use(PlayerCharacter by)
         {
             OnUse?.Invoke();
             Debug.Log(by + " used " + gameObject.name);
         }
 
-        public virtual void HandlePositioning(PlayerCharacter owner)
+        private void Update()
         {
+            OnUpdate();
+        }
+        
+        protected virtual void OnUpdate(){}
+
+        public virtual void HandlePositioning(PlayerCharacter ownerCharacter)
+        {
+            Owner = ownerCharacter;
+            OwnerIsLocal = ownerCharacter.photonView.Owner.IsLocal;
         }
     }
 }

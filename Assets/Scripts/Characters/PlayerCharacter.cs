@@ -14,7 +14,7 @@ using UnityEngine.Rendering.VirtualTexturing;
 
 namespace Characters
 {
-    public class PlayerCharacter : MonoBehaviourPunCallbacks
+    public class PlayerCharacter : MonoBehaviourPunCallbacks, IPunObservable
     {
         [SerializeField] private DeadBody deadBodyPrefab;
         [SerializeField] private Ghost ghostPrefab;
@@ -63,8 +63,6 @@ namespace Characters
         {
             if(photonView.IsMine == false)
                 return;
-
-            
             
             // out of dist
             if (ActiveInteractableObject != null)
@@ -76,12 +74,13 @@ namespace Characters
                 }
             }
             
-            // interacting
+            // interact and look around
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit))
             {
                 PointOfLook = hit.point;
-                if (Input.GetKeyDown(KeyCode.Mouse0))
+                
+                if (Input.GetKeyDown(KeyCode.E))
                 {
                     // TODO add user interface
                     if (Vector3.Distance(transform.position, hit.collider.transform.position) < maxInteractionDist)
@@ -167,6 +166,20 @@ namespace Characters
         private void OnDrawGizmosSelected()
         {
             // Handles.DrawWireDisc(transform.position,Vector3.up, maxInteractionDist);
+        }
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(PointOfLook);    
+            }
+            else
+            {
+                var point = stream.ReceiveNext();
+                PointOfLook = (Vector3) point;
+            }
+            
         }
     }
 }

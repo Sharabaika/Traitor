@@ -1,4 +1,5 @@
-﻿using ExitGames.Client.Photon;
+﻿using System;
+using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
 using ScriptableItems;
@@ -51,9 +52,7 @@ namespace Networking.Items
                 return;
             if(PhotonNetwork.LocalPlayer == photonView.Owner)
                 return;
-
-            Debug.Log(inventory);
-            Debug.Log(inventory.Capacity);
+            
             
             // inventory slots
             var needToUpdateInventory = false;
@@ -87,6 +86,21 @@ namespace Networking.Items
             if (changedProps.TryGetValue("ActiveSlot", out var index))
             {
                 inventory.ActiveIndex = (int)index;
+            }
+        }
+
+        private void Awake()
+        {
+            if (photonView.Owner != PhotonNetwork.LocalPlayer)
+            {
+                var index = photonView.Owner.CustomProperties["ActiveSlot"];
+                if(index is null)
+                {
+                    return;
+                }
+                Debug.Log(index);
+
+                inventory.ActiveIndex = (int) index;
             }
         }
     }
