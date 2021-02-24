@@ -1,5 +1,6 @@
 ﻿using Misc;
 using Photon.Pun;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -7,22 +8,36 @@ namespace Characters
 {
     public class Health : MonoBehaviourPun, IDamageable
     {
-        [SerializeField] private UnityEvent<int> healthChanged;
-        [SerializeField]private int health;
+        [SerializeField] private UnityEvent<int> onHealthReduced;
 
-        public string damageLog  = "";
+        private int _maxHealth;
+        private int _health;
+
+        public int MaxHealth
+        {
+            get => _maxHealth;
+            set
+            {
+                _maxHealth = value;
+                _health = math.clamp(_health, 0, _maxHealth);
+            }
+        }
 
         public int RemainingHealth
         {
-            get=> health;
-            private set
+            get=> _health;
+            set
             {
-                health = value;
-                healthChanged?.Invoke(value);
-                // if(RemainingHealth<=0)
-                //     GetComponent<PlayerCharacter>().Die();
+                value = math.clamp(value, 0, MaxHealth);
+                if(value < _health)
+                    onHealthReduced?.Invoke(value);
+                
+                _health = value;
+                if(RemainingHealth<=0)
+                    GetComponent<PlayerCharacter>().Die();
             }
         }
+        public string DamageLog { get; private set; }  = "";
 
         public void TakeHit(Vector3 hitDirection, Vector3 point, int damage, string damageSource)
         {
@@ -32,7 +47,7 @@ namespace Characters
         [PunRPC] public void RPC_TakeHit(Vector3 hitDirection, Vector3 point, int damage, string damageSource)
         {
             RemainingHealth -= damage;
-            damageLog += $"took {damage} damage from {damageSource}\n";
+            DamageLog += $"took {damage} damage from {damageSource}\n";
 
             Debug.Log(photonView.Owner + " took " + damage + " damage");
         }

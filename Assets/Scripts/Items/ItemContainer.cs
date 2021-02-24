@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Items;
 using Items.ItemInstances;
 using Items.ScriptableItems;
 using Photon.Pun;
@@ -12,8 +13,8 @@ namespace ScriptableItems
     {
         [SerializeField] public UnityEvent onItemsUpdated;
         [SerializeField] public UnityEvent onItemsSynchronized;
-        [SerializeField] public UnityEvent OnInventoryReshape;
-        [SerializeField] protected ItemContainerSerializableSlot[] slots = new ItemContainerSerializableSlot[20];
+        [SerializeField] public UnityEvent onInventoryReshape;
+        [SerializeField] protected ItemContainerSerializableSlot[] serializedSlots = new ItemContainerSerializableSlot[20];
         
         protected ItemSlot[] itemSlots;
         
@@ -59,6 +60,33 @@ namespace ScriptableItems
             return false;
         }
 
+        public bool RemoveOne(ItemData itemToRemove)
+        {
+            foreach (var slot in itemSlots)
+            {
+                if (slot.ItemInstance.Data == itemToRemove)
+                {
+                    slot.Quantity--;
+                    onItemsUpdated?.Invoke();
+                    
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        public bool RemoveOneOf(ItemData[] itemsToRemove)
+        {
+            foreach (var itemToRemove in itemsToRemove)
+            {
+                if (RemoveOne(itemToRemove))
+                    return true;
+            }
+
+            return false;
+        }
+
         public int Count(ItemData itemsDataToCount)
         {
             var quantity = 0;
@@ -72,12 +100,12 @@ namespace ScriptableItems
             return quantity;
         }
 
-        private void Awake()
+        public void SetItems(ItemContainerSerializableSlot[] items)
         {
-            itemSlots = new ItemSlot[slots.Length];
+            itemSlots = new ItemSlot[items.Length];
             for (int i = 0; i < Capacity; i++)
             {
-                var slot = slots[i];
+                var slot = items[i];
                 if (slot.IsEmpty)
                 {
                     itemSlots[i] = new ItemSlot();
@@ -87,15 +115,22 @@ namespace ScriptableItems
                     itemSlots[i] = new ItemSlot(slot.quantity, slot.data.GetItemInstance());
                 }
             }
-            OnAwake();
             
             if(photonView.IsMine)
-                onItemsUpdated.Invoke();
+            {
+                onInventoryReshape.Invoke();
+                // onItemsUpdated.Invoke();
+            }
+        }
+
+        private void Awake()
+        {
+            SetItems(serializedSlots);
+            OnAwake();
         }
 
         protected virtual void OnAwake()
         {
-            
         }
 
         protected void OnValidate()
@@ -110,12 +145,5 @@ namespace ScriptableItems
             //     onItemsUpdated.Invoke();
             // }
         }
-    }
-
-    [Serializable] public struct ItemContainerSerializableSlot
-    {
-        [Min(0)] public int quantity;
-        public ItemData data;
-        public bool IsEmpty => quantity == 0 || data is null;
     }
 }

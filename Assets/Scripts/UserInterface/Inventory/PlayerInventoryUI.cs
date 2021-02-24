@@ -12,7 +12,7 @@ namespace UserInterface.Inventory
         {
             itemContainer = character.GetComponent<ItemContainer>();
             itemContainer.onItemsUpdated.AddListener(UpdateSlots);
-            itemContainer.OnInventoryReshape.AddListener(DisplaySlots);
+            itemContainer.onInventoryReshape.AddListener(DisplaySlots);
             itemContainer.onItemsSynchronized.AddListener(UpdateSlots);
             (itemContainer as PlayerInventory)?.OnActiveSlotChanged.AddListener(ChangeActiveSlot);
             DisplaySlots();

@@ -1,4 +1,5 @@
 ﻿using Items.ItemInstances;
+using Items.ScriptableItems;
 using UnityEngine;
 
 namespace ScriptableItems
@@ -8,6 +9,7 @@ namespace ScriptableItems
     {
         [SerializeField] private int damage;
         [SerializeField] private int ammoCapacity;
+        [SerializeField] private int startingAmmo;
         [SerializeField] private string damageSourceDescription;
         [SerializeField] private ItemData[] ammoTypes;
         [SerializeField] private float maxDist = 15f;
@@ -22,7 +24,7 @@ namespace ScriptableItems
 
         public override ItemInstance GetItemInstance()
         {
-            return new WeaponInstance(this, ammoCapacity);
+            return new WeaponInstance(this, startingAmmo);
         }
     }
 }

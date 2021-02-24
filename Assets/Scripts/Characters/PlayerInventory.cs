@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Characters;
 using Items;
 using Items.ItemInstances;
 using Items.ScriptableItems;
 using Photon.Pun;
+using ScriptableItems;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.PlayerLoop;
 
-namespace ScriptableItems
+namespace Characters
 {
     public class PlayerInventory : ItemContainer
     {
@@ -135,12 +133,14 @@ namespace ScriptableItems
         private void OnEnable()
         {
             onItemsUpdated.AddListener(OnItemsUpdated);
+            onInventoryReshape.AddListener(OnItemsUpdated);
             onItemsSynchronized.AddListener(OnItemsUpdated);
         }
 
         private void OnDisable()
         {
             onItemsUpdated.RemoveListener(OnItemsUpdated);
+            onInventoryReshape.RemoveListener(OnItemsUpdated);
             onItemsSynchronized.RemoveListener(OnItemsUpdated);
         }
 

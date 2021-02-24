@@ -1,4 +1,5 @@
 ﻿using System;
+using Characters;
 using ExitGames.Client.Photon;
 using Photon.Pun;
 using Photon.Realtime;
@@ -68,7 +69,7 @@ namespace Networking.Items
                 if(changedProps.TryGetValue("SlotItem"+i.ToString(),  out var ID))
                 {
                     var slot = inventory.GetSlotByIndex(i);
-                    slot.ItemInstance = itemList.GetItemData((int)ID).GetItemInstance();
+                    slot.ItemInstance = itemList.GetItem((int)ID).GetItemInstance();
                     needToUpdateInventory = true;
                 }
 

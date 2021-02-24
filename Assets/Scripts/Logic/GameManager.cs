@@ -6,6 +6,7 @@ using Photon.Realtime;
 using UnityEngine;
 using Random = UnityEngine.Random;
 using Characters;
+using Networking;
 using UnityEngine.Events;
 using UserInterface;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
@@ -21,13 +22,13 @@ namespace Logics
         }
 
         // TODO need classes
-        public enum Classes
-        {
-            Hunter, // reads the tracks, starts with rifle
-            Gypsy,  // 6 inventory slots, starts with coins and slipping baby
-            Medic,  // reads wounds, starts with first aid kit
-            
-        }
+        // public enum Classes
+        // {
+        //     Hunter, // reads the tracks, starts with rifle
+        //     Gypsy,  // 6 inventory slots, starts with coins and slipping baby
+        //     Medic,  // reads wounds, starts with first aid kit
+        //     
+        // }
 
         [SerializeField] private PlayerCharacter playerPrefab;
 
@@ -41,6 +42,10 @@ namespace Logics
 
         [SerializeField] private UnityEvent OnGameStarted;
 
+        [SerializeField] private Class[] classes;
+        [SerializeField] private ClassList classIDList;
+
+        public Class[] Classes => classes;
         public Dictionary<Player, PlayerCharacter> Characters
         {
             get;
@@ -94,18 +99,27 @@ namespace Logics
         public void StartGame()
         {
             if(!PhotonNetwork.IsMasterClient || !CanStartGame) return;
-            SingRoles();
+            // SingRoles();
             SingClasses();
-            MovePlayersToSpawnPositions();
+            // MovePlayersToSpawnPositions();
         }
 
         private void SingClasses()
         {
-            var classes = Enum.GetNames(typeof(Classes));
-            foreach (var player in Characters.Keys)
+            foreach (var character in Characters.Values)
             {
-                var hash = new Hashtable{{"Class",classes[Random.Range(0,classes.Length)]}};
-                player.SetCustomProperties(hash);
+                var index = Random.Range(0, classes.Length);
+                Debug.Log(index);
+                var characterClass = classes[index];
+                
+                // TODO sync signed classes
+                // var id = classIDList.GetID(characterClass);
+                // var hash = new Hashtable {{"ClassID", id}};
+                // player.SetCustomProperties(hash);
+                
+                character.Inventory.SetItems(characterClass.StartingInventory);
+                character.Health.MaxHealth = characterClass.MaxHealth;
+                character.Health.RemainingHealth = characterClass.StartingHealth;
             }
         }
         
@@ -160,13 +174,12 @@ namespace Logics
 
         public void CheckGameState()
         {
-            throw new NotImplementedException();
+            // TODO
         }
 
         private void EndGame()
         {
-            throw new NotImplementedException();
-
+            // TODO
         }
 
         public void FreezePlayers()

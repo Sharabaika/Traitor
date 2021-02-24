@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Character;
 using Cinemachine;
 using ExitGames.Client.Photon;
@@ -31,7 +32,7 @@ namespace Characters
         public PlayerInventory Inventory{ get; private set; }
         public Health Health{ get; private set; }
         
-        public GameManager.Classes Class { get; private set; }
+        public Class Class { get; private set; }
         public GameManager.Roles Role { get; private set; }
         
         public bool IsAlive { get; private set; } = true;

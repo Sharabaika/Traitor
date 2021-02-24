@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UserInterface.Inventory
 {
+    // TODO fix scene updating
     public class ItemContainerUI : MonoBehaviour
     {
         [SerializeField] protected ItemContainer itemContainer;

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Items.ScriptableItems;
 using ScriptableItems;
 using TMPro;
 using UnityEngine;
@@ -55,7 +56,7 @@ namespace Hel.Items
         {
             var builder = new StringBuilder();
 
-            builder.Append("<size=75>").Append(infoItemData.Name).Append("</size>\n");
+            builder.Append("<size=75>").Append(infoItemData.name).Append("</size>\n");
             builder.Append(infoItemData.Description);
 
             infoText.text = builder.ToString();

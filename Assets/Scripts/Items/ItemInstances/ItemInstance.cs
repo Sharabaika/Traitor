@@ -1,5 +1,6 @@
 ﻿using System;
 using Characters;
+using Items.ScriptableItems;
 using Misc;
 using ScriptableItems;
 using UnityEngine;
@@ -17,7 +18,14 @@ namespace Items.ItemInstances
             Data = data;
         }
 
-        public virtual void UseBy(PlayerCharacter character)
+        
+        // TODO add UseOn( by, target)
+        public virtual void UseBy(PlayerCharacter user)
+        {
+            
+        }
+
+        public virtual void AlternativeUse(PlayerCharacter user)
         {
             
         }

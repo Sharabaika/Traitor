@@ -41,7 +41,6 @@ namespace Items
         public virtual void Use(PlayerCharacter by)
         {
             OnUse?.Invoke();
-            Debug.Log(by + " used " + gameObject.name);
         }
 
         private void Update()

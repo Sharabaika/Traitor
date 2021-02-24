@@ -1,4 +1,5 @@
-﻿using ScriptableEvents.Events;
+﻿using Items.ScriptableItems;
+using ScriptableEvents.Events;
 using ScriptableItems;
 using UnityEngine.Events;
 
