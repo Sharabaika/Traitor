@@ -18,7 +18,7 @@ namespace Multiplayer
             PhotonNetwork.AutomaticallySyncScene = true;
             PhotonNetwork.GameVersion = "1";
             PhotonNetwork.ConnectUsingSettings();
-
+            
             nickTextField.text = playerPreferences.nickName;
         }
 
