@@ -20,16 +20,7 @@ namespace Logics
         {
             Serb, Croat, Murderer,Survivor
         }
-
-        // TODO need classes
-        // public enum Classes
-        // {
-        //     Hunter, // reads the tracks, starts with rifle
-        //     Gypsy,  // 6 inventory slots, starts with coins and slipping baby
-        //     Medic,  // reads wounds, starts with first aid kit
-        //     
-        // }
-
+        
         [SerializeField] private PlayerCharacter playerPrefab;
 
         [SerializeField] private Transform homePoint;
@@ -109,14 +100,9 @@ namespace Logics
             foreach (var character in Characters.Values)
             {
                 var index = Random.Range(0, classes.Length);
-                Debug.Log(index);
                 var characterClass = classes[index];
                 
-                // TODO sync signed classes
-                // var id = classIDList.GetID(characterClass);
-                // var hash = new Hashtable {{"ClassID", id}};
-                // player.SetCustomProperties(hash);
-                
+                // TODO it should do Class , nor GameManager
                 character.Inventory.SetItems(characterClass.StartingInventory);
                 character.Health.MaxHealth = characterClass.MaxHealth;
                 character.Health.RemainingHealth = characterClass.StartingHealth;

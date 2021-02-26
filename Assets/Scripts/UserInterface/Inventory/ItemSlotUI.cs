@@ -1,4 +1,5 @@
-﻿using Items.ScriptableItems;
+﻿using Items;
+using Items.ScriptableItems;
 using ScriptableItems;
 using TMPro;
 using UnityEngine;
@@ -11,9 +12,13 @@ namespace UserInterface.Inventory
     {
         [SerializeField] protected Image background;
         [SerializeField] protected Image icon;
-        [SerializeField] protected TextMeshProUGUI itemQuantityText;
-
         
+        /// <summary>
+        /// item quantity or status field
+        /// </summary>
+        [SerializeField] protected TextMeshProUGUI itemStatusTextfield;
+
+
         // public ItemContainer ItemContainer;
         public ItemContainer ItemContainer { get; set; }
         public ItemSlot ItemSlot { get; set; }
@@ -43,13 +48,21 @@ namespace UserInterface.Inventory
             }
             EnableSlotUI(true);
             icon.sprite = ItemSlot.ItemInstance.Data.Icon;
-            itemQuantityText.text = ItemSlot.Quantity.ToString();
+            
+            if(ItemSlot.ItemInstance.Data.IsStackable)
+            {
+                itemStatusTextfield.text = ItemSlot.Quantity.ToString();
+            }
+            else
+            {
+                itemStatusTextfield.text = ItemSlot.ItemInstance.GetStatus();
+            }
         }
 
         private void EnableSlotUI(bool enable)
         {
             icon.enabled = enable;
-            itemQuantityText.enabled = enable;
+            itemStatusTextfield.enabled = enable;
         }
     }
 }

@@ -1,16 +1,14 @@
-﻿using System;
-using System.Linq;
-using Items;
-using Items.ItemInstances;
+﻿using Items.ItemInstances;
 using Items.ScriptableItems;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace ScriptableItems
+namespace Items
 {
     public class ItemContainer : MonoBehaviourPun
     {
+        
         [SerializeField] public UnityEvent onItemsUpdated;
         [SerializeField] public UnityEvent onItemsSynchronized;
         [SerializeField] public UnityEvent onInventoryReshape;
@@ -18,7 +16,8 @@ namespace ScriptableItems
         
         protected ItemSlot[] itemSlots;
         
-        public int Capacity => itemSlots.Length;
+        public int Capacity => itemSlots?.Length ?? 0;
+
         private int _previousCapacity;
         
         public ItemSlot GetSlotByIndex(int index)
@@ -116,34 +115,39 @@ namespace ScriptableItems
                 }
             }
             
-            if(photonView.IsMine)
+            onInventoryReshape.Invoke();
+            onItemsUpdated.Invoke();
+        }
+        
+        public virtual void Resize(int newCapacity)
+        {
+            var newSlots = new ItemSlot[newCapacity];
+            
+            for (int i = 0; i < newCapacity; i++)
             {
-                onInventoryReshape.Invoke();
-                // onItemsUpdated.Invoke();
+                if (i < Capacity)
+                {
+                    newSlots[i] = itemSlots[i];
+                }
+                else
+                {
+                    newSlots[i] = new ItemSlot();
+                }
             }
+            itemSlots = newSlots;
+            
+            onInventoryReshape.Invoke();
         }
 
         private void Awake()
         {
-            SetItems(serializedSlots);
             OnAwake();
         }
 
         protected virtual void OnAwake()
         {
-        }
-
-        protected void OnValidate()
-        {
-            // if (Capacity != _previousCapacity)
-            // {
-            //     OnInventoryReshape?.Invoke();
-            //     _previousCapacity = Capacity;
-            // }
-            // else
-            // {
-            //     onItemsUpdated.Invoke();
-            // }
+            if(PhotonNetwork.IsMasterClient)
+                SetItems(serializedSlots);
         }
     }
 }

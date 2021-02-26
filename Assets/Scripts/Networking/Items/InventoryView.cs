@@ -13,6 +13,7 @@ namespace Networking.Items
         [SerializeField] private ItemList itemList;
         [SerializeField] private PlayerInventory inventory;
 
+        // unnecessary
         public void SendActiveItemSlot(int index)
         {
             if(!photonView.IsMine)
@@ -23,10 +24,11 @@ namespace Networking.Items
         }
         public void SendItems()
         {
-            if(!photonView.IsMine)
+            if( ! (photonView.IsMine || PhotonNetwork.IsMasterClient) )
                 return;
 
-            var hash = new Hashtable();
+            var hash = new Hashtable{{"Capacity",inventory.Capacity}};
+            
             
             for (var i = 0; i < inventory.Capacity; i++)
             {
@@ -51,8 +53,8 @@ namespace Networking.Items
         {
             if(targetPlayer != photonView.Owner)
                 return;
-            if(PhotonNetwork.LocalPlayer == photonView.Owner)
-                return;
+            // if(PhotonNetwork.LocalPlayer == photonView.Owner)
+            //     return;
             
             
             // inventory slots
@@ -62,8 +64,10 @@ namespace Networking.Items
                 if(changedProps.TryGetValue("SlotQuantity"+i.ToString(),  out var quantity))
                 {
                     var slot = inventory.GetSlotByIndex(i);
-                    slot.Quantity = (int) quantity;
-                    needToUpdateInventory = true;
+                    var q = (int) quantity;
+                    
+                    needToUpdateInventory = q!=slot.Quantity;
+                    slot.Quantity = q;
                 }
 
                 if(changedProps.TryGetValue("SlotItem"+i.ToString(),  out var ID))
@@ -84,25 +88,36 @@ namespace Networking.Items
                 inventory.onItemsSynchronized?.Invoke();
             
             // Active slot
-            if (changedProps.TryGetValue("ActiveSlot", out var index))
-            {
-                inventory.ActiveIndex = (int)index;
-            }
+            // if (changedProps.TryGetValue("ActiveSlot", out var index))
+            // {
+            //     inventory.ActiveIndex = (int)index;
+            // }
+        }
+
+        public override void OnEnable()
+        {
+            inventory.onItemsUpdated.AddListener(SendItems);
+            inventory.onInventoryReshape.AddListener(SendItems);
+        }
+
+        public override void OnDisable()
+        {
+            inventory.onItemsUpdated.RemoveListener(SendItems);
+            inventory.onInventoryReshape.RemoveListener(SendItems);
         }
 
         private void Awake()
         {
-            if (photonView.Owner != PhotonNetwork.LocalPlayer)
-            {
-                var index = photonView.Owner.CustomProperties["ActiveSlot"];
-                if(index is null)
-                {
-                    return;
-                }
-                Debug.Log(index);
-
-                inventory.ActiveIndex = (int) index;
-            }
+            // if (photonView.Owner != PhotonNetwork.LocalPlayer)
+            // {
+            //     var index = photonView.Owner.CustomProperties["ActiveSlot"];
+            //     if(index is null)
+            //     {
+            //         return;
+            //     }
+            //
+            //     inventory.ActiveIndex = (int) index;
+            // }
         }
     }
 }

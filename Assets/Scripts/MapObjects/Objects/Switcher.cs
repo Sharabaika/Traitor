@@ -59,7 +59,7 @@ namespace MapObjects.Objects
 
         private void OnValidate()
         {
-            isOn = On;
+            // isOn = On;
         }
 
         protected override void OnNewPlayerJoinedRoom(Player newPlayer)

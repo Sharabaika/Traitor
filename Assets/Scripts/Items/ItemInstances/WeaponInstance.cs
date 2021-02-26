@@ -1,6 +1,8 @@
-﻿using Characters;
+﻿using System.Runtime.InteropServices;
+using Characters;
 using Items.ScriptableItems;
 using Misc;
+using Photon.Chat;
 using ScriptableItems;
 using UnityEngine;
 
@@ -17,26 +19,50 @@ namespace Items.ItemInstances
             _data =(WeaponData) data;
         }
 
-        public override void AlternativeUse(PlayerCharacter user)
+        public bool WasteAmmo()
         {
-            // reload
-            if(user.Inventory.RemoveOneOf(_data.AmmoTypes) == false)
-                return;
-        }
-        
-
-        public override void UseBy(PlayerCharacter character)
-        {
-            // Shoot
-            var position = character.Inventory.AnchorTransform.position;
-            var direction = (character.PointOfLook - position).normalized;
-            var ray = new Ray(position, direction);
-            
-            if (Physics.Raycast(ray,out var hit ,_data.MaxDist, _data.RaycastMasc))
+            if (RemainingAmmo > 0)
             {
-                var damageable = hit.collider.GetComponent<IDamageable>();
-                damageable?.TakeHit(direction, hit.point, _data.Damage, _data.DamageSourceDescription);
+                RemainingAmmo--;
+                return true;
             }
+
+            return false;
+        }
+
+        public void Reload(PlayerCharacter character)
+        {
+            var missingAmmo = _data.AmmoCapacity - RemainingAmmo;
+            var inventory = character.Inventory;
+            
+            for (int i = 0; i < missingAmmo; i++)
+            {
+                if (inventory.RemoveOneOf(_data.AmmoTypes))
+                {
+                    RemainingAmmo++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+
+        public override string GetStatus()
+        {
+            return $"{RemainingAmmo}\\{_data.AmmoCapacity}";
+        }
+
+        public override string SerializeState()
+        {
+            return RemainingAmmo.ToString();
+        }
+
+        public override void DeserializeState(string data)
+        {
+            var values = data.Split(':');
+            RemainingAmmo = int.Parse(values[0]);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Characters;
 using Items.ScriptableItems;
 using Misc;
@@ -12,22 +13,14 @@ namespace Items.ItemInstances
         public ItemData Data { get; }
         public bool IsNull => Data is null;
 
-        private Item _itemRepresentation;
         public ItemInstance(ItemData data = null)
         {
             Data = data;
         }
 
-        
-        // TODO add UseOn( by, target)
-        public virtual void UseBy(PlayerCharacter user)
+        public virtual string GetStatus()
         {
-            
-        }
-
-        public virtual void AlternativeUse(PlayerCharacter user)
-        {
-            
+            return "";
         }
 
         public virtual string SerializeState()

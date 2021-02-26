@@ -52,10 +52,12 @@ namespace Characters
                         Input.GetAxisRaw("Vertical")).normalized;
                     velocity = dir * speed;
                 }
+
                 _rigidbody.velocity = velocity;
+
+                _animator.Movement(_rigidbody.velocity);
+                _animator.IsLookingRight = (_character.PointOfLook.x - transform.position.x) > 0;
             }
-            _animator.Movement(_rigidbody.velocity);
-            _animator.IsLookingRight = (_character.PointOfLook.x - transform.position.x)> 0;
         }
     }
 }

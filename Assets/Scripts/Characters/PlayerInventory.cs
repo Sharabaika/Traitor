@@ -5,6 +5,7 @@ using Items.ItemInstances;
 using Items.ScriptableItems;
 using Photon.Pun;
 using ScriptableItems;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -30,12 +31,14 @@ namespace Characters
             get => _activeIndex;
             set
             {
+                if(photonView.IsMine == false)
+                    return;
+                
                 if (ActiveItem != null)
                 {
                     ActiveItem.isHidden = true;
                 }
                 _activeIndex = value;
-                // if (ActiveSlot.ItemInstance is null)
                 if (ActiveSlot.IsEmpty)
                 {
                     ActiveItem = null;
@@ -61,6 +64,9 @@ namespace Characters
 
         private void CreateItemRepresentations()
         {
+            if(photonView.IsMine == false)
+                return;
+            
             // check inventory slots
             for (int i = 0; i < Capacity; i++)
             {
@@ -73,10 +79,16 @@ namespace Characters
                 }
                 else
                 {
-                    // create missing item
-                    var item = Instantiate(slot.ItemInstance.Data.Item, anchor, false);
+                    var itemPrefab = slot.ItemInstance.Data.Item;
+                    var path = slot.ItemInstance.Data.PrefabPath;
+                    var gameObject = PhotonNetwork.Instantiate(path, anchor.position, Quaternion.identity);
+                    
+                    gameObject.transform.SetParent(anchor);
+                    
+                    var item = gameObject.GetComponent<Item>();
                     item.isHidden = true;
                     item.HandlePositioning(_character);
+                    item.SetItemInstance(slot.ItemInstance);
                     _items.Add(slot.ItemInstance, item);
                 }
             }
@@ -101,7 +113,7 @@ namespace Characters
 
             foreach (var item in itemsToDestroy)
             {
-                Destroy(item.gameObject);
+                PhotonNetwork.Destroy(item.gameObject);
             }
         }
 
@@ -111,21 +123,15 @@ namespace Characters
             ActiveIndex = ActiveIndex;
         }
         
-        [PunRPC] public void UseActiveItem()
-        {
-            if(ActiveSlot.IsEmpty)
-                return;
-            if (photonView.IsMine)
-                ActiveSlot.ItemInstance.UseBy(_character);
-            ActiveItem.Use(_character);
-        }
-
         protected override void OnAwake()
         {
+            if(photonView.IsMine)
+                SetItems(serializedSlots);
+
             _character = GetComponent<PlayerCharacter>();
             
             _items = new Dictionary<ItemInstance, Item>();
-            CreateItemRepresentations();
+            // CreateItemRepresentations();
             
             ActiveIndex = 0;
         }
@@ -133,14 +139,12 @@ namespace Characters
         private void OnEnable()
         {
             onItemsUpdated.AddListener(OnItemsUpdated);
-            onInventoryReshape.AddListener(OnItemsUpdated);
             onItemsSynchronized.AddListener(OnItemsUpdated);
         }
 
         private void OnDisable()
         {
             onItemsUpdated.RemoveListener(OnItemsUpdated);
-            onInventoryReshape.RemoveListener(OnItemsUpdated);
             onItemsSynchronized.RemoveListener(OnItemsUpdated);
         }
 
@@ -159,9 +163,16 @@ namespace Characters
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.Mouse0))
+            if (Input.GetKeyDown(KeyCode.Mouse0) && ActiveSlot.IsEmpty == false)
             {
-                photonView.RPC("UseActiveItem", RpcTarget.All);
+                ActiveItem.Use(_character);
+                onItemsUpdated.Invoke();
+            }
+
+            if (Input.GetKeyDown(KeyCode.R) && ActiveSlot.IsEmpty == false)
+            {
+                ActiveItem.AlternativeUse(_character);
+                onItemsUpdated.Invoke();
             }
         }
     }

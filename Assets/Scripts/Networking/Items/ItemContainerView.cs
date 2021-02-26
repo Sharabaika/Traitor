@@ -1,8 +1,9 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using ExitGames.Client.Photon;
+using Items;
 using Items.ScriptableItems;
 using Photon.Pun;
-using Photon.Realtime;
 using ScriptableItems;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace Networking.Items
 
         private string GetKey()=> "ItemContainer"+photonView.ViewID.ToString();
 
-        public void SendItems()
+        private void SendItems()
         {
             var builder = new StringBuilder();
 
@@ -26,18 +27,21 @@ namespace Networking.Items
                 var slot = container.GetSlotByIndex(i);
                 builder.Append(SerializeSlot(slot)).Append(' ');
             }
-
             var hash = new Hashtable {{key, builder.ToString()}};
             PhotonNetwork.CurrentRoom.SetCustomProperties(hash);
         }
 
-        public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+        private void SetItems(Hashtable properties)
         {
-            if (propertiesThatChanged.TryGetValue(GetKey(), out var data))
-            {
+            if (properties.TryGetValue(GetKey(), out var data))
+            { 
                 var str = (string) data;
                 var slotsData = str.TrimEnd().Split(' ');
-
+                
+                var needToResize = slotsData.Length != container.Capacity;
+                if (needToResize)
+                    container.Resize(slotsData.Length);
+                
                 var i = 0;
                 foreach (var slotData in slotsData)
                 {
@@ -63,6 +67,11 @@ namespace Networking.Items
             }
         }
 
+        public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
+        {
+            SetItems(propertiesThatChanged);
+        }
+
         private string SerializeSlot(ItemSlot slot)
         {
             if (slot.IsEmpty)
@@ -80,6 +89,24 @@ namespace Networking.Items
                     Append(state);
             
             return builder.ToString();
+        }
+
+        private void Awake()
+        {
+            var props = PhotonNetwork.CurrentRoom.CustomProperties;
+            SetItems(props);
+        }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            container.onItemsUpdated.AddListener(SendItems);
+        }
+
+        public override void OnDisable()
+        {
+            base.OnEnable();
+            container.onItemsUpdated.RemoveListener(SendItems);
         }
     }
 }

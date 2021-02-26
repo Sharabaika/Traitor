@@ -1,4 +1,5 @@
 ﻿using Characters;
+using Items;
 using ScriptableItems;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace UserInterface.Inventory
                 _activeSlot.IsOutlining = false;
             if (index >= 0)
             {
-                _activeSlot = (PlayerInventorySlotUI)_slotUIs[index];
+                _activeSlot = (PlayerInventorySlotUI)slotUIs[index];
                 _activeSlot.IsOutlining = true;
             }
         }

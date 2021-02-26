@@ -97,8 +97,7 @@ namespace Characters
 
         private void Start()
         {
-            var manager = FindObjectOfType<GameManager>();
-            manager.AddPlayer(this);
+            GameManager.Instance.AddPlayer(this);
 
             if (photonView.IsMine)
             {

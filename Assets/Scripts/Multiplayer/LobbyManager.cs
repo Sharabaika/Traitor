@@ -11,7 +11,7 @@ namespace Multiplayer
         [SerializeField] private Text logText;
         [SerializeField] private InputField nickTextField;
 
-        [SerializeField] private PlayerAccount _playerAccount;
+        [SerializeField] private PlayerPreferences playerPreferences;
         
         void Start()
         {
@@ -19,7 +19,7 @@ namespace Multiplayer
             PhotonNetwork.GameVersion = "1";
             PhotonNetwork.ConnectUsingSettings();
 
-            nickTextField.text = _playerAccount.NickName;
+            nickTextField.text = playerPreferences.nickName;
         }
 
         public override void OnConnectedToMaster()
@@ -29,13 +29,13 @@ namespace Multiplayer
 
         public void CreateRoom()
         {
-            PhotonNetwork.NickName = _playerAccount.NickName;
+            PhotonNetwork.NickName = playerPreferences.nickName;
             PhotonNetwork.CreateRoom(null);
         }
 
         public void JoinRoom()
         {
-            PhotonNetwork.NickName = _playerAccount.NickName;
+            PhotonNetwork.NickName = playerPreferences.nickName;
             PhotonNetwork.JoinRandomRoom();
         }
 
@@ -48,7 +48,7 @@ namespace Multiplayer
 
         public void ChangeNick(string nick)
         {
-            _playerAccount.NickName = nick;
+            playerPreferences.nickName = nick;
         }
 
         public void Log(string message)

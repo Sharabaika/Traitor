@@ -63,6 +63,11 @@ MonoBehaviour:
   - UseActiveItem
   - RPC_TakeDamage
   - RPC_TakeHit
+  - SyncAlternativeEffects
+  - SyncEffects
+  - OnFailedShot
+  - OnReload
+  - OnShot
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

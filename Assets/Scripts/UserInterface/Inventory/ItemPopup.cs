@@ -1,11 +1,10 @@
 ﻿using System.Text;
 using Items.ScriptableItems;
-using ScriptableItems;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Hel.Items
+namespace UserInterface.Inventory
 {
     public class ItemPopup : MonoBehaviour
     {

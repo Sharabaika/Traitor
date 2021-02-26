@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Items;
 using ScriptableItems;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace UserInterface.Inventory
         private Canvas _firstPriorityCanvas;
         public Canvas FirstPriorityCanvas => _firstPriorityCanvas;
 
-        [SerializeField]protected List<ItemSlotUI> _slotUIs = new List<ItemSlotUI>();
+        [SerializeField]protected List<ItemSlotUI> slotUIs = new List<ItemSlotUI>();
 
         public void Show()
         {
@@ -52,7 +53,7 @@ namespace UserInterface.Inventory
                 slotUI.ItemContainer = itemContainer;
                 slotUI.ItemSlot = itemContainer.GetSlotByIndex(i);
                 slotUI.ItemContainerUI = this;
-                _slotUIs.Add(slotUI);
+                slotUIs.Add(slotUI);
             }
 
             UpdateSlots();
@@ -65,12 +66,12 @@ namespace UserInterface.Inventory
                 StartCoroutine(DestroyAfterValidationFrame(child.gameObject));
             }
 
-            _slotUIs.Clear();
+            slotUIs.Clear();
         }
 
         public void UpdateSlots()
         {
-            foreach (var ui in _slotUIs)
+            foreach (var ui in slotUIs)
             {
                 ui.UpdateSlotUI();
             }

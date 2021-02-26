@@ -49,7 +49,7 @@ namespace MapObjects
 
         private void OnValidate()
         {
-            Intensity = intensity;
+            // Intensity = intensity;
         }
 
         private void OnDrawGizmosSelected()

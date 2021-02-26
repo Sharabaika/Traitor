@@ -1,4 +1,6 @@
-﻿using Items.ItemInstances;
+﻿using System;
+using Items.ItemInstances;
+using UnityEditor;
 using UnityEngine;
 
 namespace Items.ScriptableItems
@@ -11,10 +13,28 @@ namespace Items.ScriptableItems
         [SerializeField] private string description;
         [SerializeField] private Item item;
         
+        // Костыль, но работает
+        [SerializeField, HideInInspector] private string path;
+        public string PrefabPath
+        {
+            get => path;
+            set => path = value;
+        }
+        
         public Sprite Icon => icon;
         public int MaxStack => maxStack;
         public string Description => description;
         public Item Item => item;
+        public bool IsStackable => MaxStack != 1;
+
+        private void OnValidate()
+        {
+#if UNITY_EDITOR
+            path = AssetDatabase.GetAssetPath(item)
+                .Replace(".prefab", "")
+                .Replace("Assets/Resources/", "");
+#endif
+        }
 
         public virtual ItemInstance GetItemInstance()
         {
