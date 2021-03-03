@@ -15,28 +15,25 @@ namespace Logics
 {
     public class GameManager : MonoBehaviourPunCallbacks
     {
-        
         public enum Roles
         {
             Serb, Croat, Murderer,Survivor
         }
         
-        [SerializeField] private PlayerCharacter playerPrefab;
-
         [SerializeField] private Transform homePoint;
-
-        [SerializeField] private UI userInterface;
-
         [SerializeField] private int requiredPlayers = 2;
-
-        [SerializeField] private UnityEvent<PlayerCharacter> OnLocalPlayerCreated;
-
-        [SerializeField] private UnityEvent OnGameStarted;
+        
+        [SerializeField] private UnityEvent<PlayerCharacter> onLocalPlayerCreated;
+        
+        [SerializeField] private UnityEvent<bool> onCanStartGame;
+        [SerializeField] private UnityEvent<bool> onCanStartGameMaster;
+        
+        [SerializeField] private UnityEvent onGameStarted;
+        [SerializeField] private UnityEvent onGameStartedMaster;
 
         [SerializeField] private Class[] classes;
         [SerializeField] private ClassList classIDList;
-
-        public Class[] Classes => classes;
+        
         public Dictionary<Player, PlayerCharacter> Characters
         {
             get;
@@ -49,26 +46,38 @@ namespace Logics
             get => _canStartGame;
             set
             {
-                _canStartGame = value;
+                if (GameIsStarted)
+                {
+                    _canStartGame = false;
+                }else
+                {
+                    _canStartGame = value;
+                }
+                onCanStartGame.Invoke(CanStartGame);
                 
-                // TODO add events or smth
-                userInterface.StartGameButton.SetActive(value && PhotonNetwork.IsMasterClient);
+                if (PhotonNetwork.IsMasterClient)
+                    onCanStartGameMaster.Invoke(CanStartGame);
+            }
+        }
+
+        private bool _gameIsStarted = false;
+
+        public bool GameIsStarted
+        {
+            get => _gameIsStarted;
+            private set
+            {
+                _gameIsStarted = value;
+                if (value)
+                    CanStartGame = false;
             }
         }
 
         public static GameManager Instance { get; private set; }
-        
-        private bool _isGameStarted = false;
 
-
-        private Voting _voting;
-        
-        
         private void Awake()
         {
             Characters = new Dictionary<Player, PlayerCharacter>();
-            _voting = GetComponent<Voting>();
-
             Instance = this;
         }
 
@@ -83,20 +92,29 @@ namespace Logics
 
             if (character.photonView.IsMine)
             {
-                OnLocalPlayerCreated?.Invoke(character);
+                onLocalPlayerCreated?.Invoke(character);
             }
         }
         
         public void StartGame()
         {
             if(!PhotonNetwork.IsMasterClient || !CanStartGame) return;
-            // SingRoles();
-            SingClasses();
-            // MovePlayersToSpawnPositions();
+            GameIsStarted = true;
+            
+            onGameStartedMaster.Invoke();
+            photonView.RPC("OnGameStarted_PRC", RpcTarget.All);
         }
 
-        private void SingClasses()
+        [PunRPC] public void OnGameStarted_PRC()
         {
+            onGameStarted.Invoke();
+        }
+
+        public void SingClasses()
+        {
+            if (!PhotonNetwork.IsMasterClient)
+                return;
+            
             foreach (var character in Characters.Values)
             {
                 var index = Random.Range(0, classes.Length);

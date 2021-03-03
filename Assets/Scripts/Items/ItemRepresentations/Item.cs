@@ -1,12 +1,10 @@
-﻿using System;
-using Characters;
+﻿using Characters;
 using Items.ItemInstances;
 using Logics;
 using Photon.Pun;
 using UnityEngine;
-using UnityEngine.Events;
 
-namespace Items
+namespace Items.ItemRepresentations
 {
     public class Item : MonoBehaviourPun, IPunObservable
     { 

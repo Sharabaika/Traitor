@@ -6,7 +6,7 @@ using ScriptableItems;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Items
+namespace Items.ItemRepresentations
 {
     public class Weapon : Item
     {
@@ -21,6 +21,7 @@ namespace Items
         private WeaponInstance _weaponInstance;
         private WeaponData _data;
         private Quaternion _targetRotation;
+        
         
         public override void SetItemInstance(ItemInstance instance)
         {

@@ -68,6 +68,8 @@ MonoBehaviour:
   - OnFailedShot
   - OnReload
   - OnShot
+  - OnGameStarted_PRC
+  - StartCyclesSync
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

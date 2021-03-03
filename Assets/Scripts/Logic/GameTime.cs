@@ -1,43 +1,54 @@
 ﻿using System;
 using System.Collections;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Experimental.Rendering.Universal;
 
-namespace Logics
+namespace Logic
 {
-    public class GameTime : MonoBehaviour
+    public class GameTime : MonoBehaviourPun
     {
-        [SerializeField] private float nightDuration;
-        [SerializeField] private float dayDuration;
+        [SerializeField] private float nightDurationSecs;
+        [SerializeField] private float dayDurationSecs;
 
-        [SerializeField] private UnityEvent onMidnight;
-        [SerializeField] private UnityEvent onMorning;
-        [SerializeField] private UnityEvent onHighNoon;
-        [SerializeField] private UnityEvent onEvening;
+        [SerializeField] private float startingTime = 12f;
 
-        private Coroutine _gameCycle;
+        public float CurrentTime { get; private set; }
+        public int DaysPassed { get; private set; } = 0;
+        public float CycleDuration => nightDurationSecs + dayDurationSecs;
 
-        public void StartGameCycle()
+        private Coroutine _timeCoroutine;
+
+        private void Awake()
         {
-            _gameCycle = StartCoroutine(GameCycle());
+            CurrentTime = startingTime;
         }
-        
-        private IEnumerator GameCycle()
+
+        public void StartTimeCycle()
         {
+            photonView.RPC("StartCyclesSync", RpcTarget.All,PhotonNetwork.Time);
+        }
+
+        [PunRPC] public void StartCyclesSync(double startedAt)
+        {
+            _timeCoroutine = StartCoroutine(GameCycle(startedAt));
+        }
+
+        private IEnumerator GameCycle(double startedAt)
+        {
+            var timePassed = PhotonNetwork.Time - startedAt;
+            CurrentTime += (float)timePassed;
             while (true)
             {
-                yield return new WaitForSeconds(nightDuration/2f);
-                onMorning?.Invoke();
-                yield return new WaitForSeconds(dayDuration/2f);
-                onHighNoon?.Invoke();
-                yield return new WaitForSeconds(dayDuration/2f);
-                onEvening?.Invoke();
-                yield return new WaitForSeconds(nightDuration/2f);
-                onMidnight?.Invoke();
+                yield return null;
+                CurrentTime += Time.deltaTime / CycleDuration * 24f;
+                
+                if (CurrentTime > 24f)
+                {
+                    CurrentTime -= 24f;
+                    DaysPassed++;
+                }
             }
         }
-        
-        
     }
 }

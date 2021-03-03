@@ -7,6 +7,7 @@ namespace ScriptableEvents.Listeners
     public class ScriptableEventListener<T, E, UER> : MonoBehaviour,
         IGameEventListener<T> where E : BaseGameEvent<T> where UER : UnityEvent<T>
     {
+        // TODO add listening to multiple events
         [SerializeField] private E gameEvent = null;
         [SerializeField] private bool isListening = true;
         [SerializeField] private UER unityEventResponse = null;

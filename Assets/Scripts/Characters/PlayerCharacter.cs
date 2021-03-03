@@ -83,7 +83,6 @@ namespace Characters
                 
                 if (Input.GetKeyDown(KeyCode.E))
                 {
-                    // TODO add user interface
                     if (Vector3.Distance(transform.position, hit.collider.transform.position) < maxInteractionDist)
                     {
                         var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
