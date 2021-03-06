@@ -31,7 +31,6 @@ namespace Characters
         public CharacterAnimator Animator{ get; private set; }
         public PlayerInventory Inventory{ get; private set; }
         public Health Health{ get; private set; }
-        
         public Class Class { get; private set; }
         public GameManager.Roles Role { get; private set; }
         
@@ -40,6 +39,8 @@ namespace Characters
         public Vector3 PointOfLook { get; private set; }
 
         private InteractableObject _activeInteractableObject;
+        private InteractableObject _interactableObjectOfInterest;
+        private Camera _mainCamera;
 
         public InteractableObject ActiveInteractableObject
         {
@@ -58,6 +59,7 @@ namespace Characters
             Animator = GetComponent<CharacterAnimator>();
             Inventory = GetComponent<PlayerInventory>();
             Health = GetComponent<Health>();
+            _mainCamera = Camera.main;
         }
 
         private void Update()
@@ -76,7 +78,7 @@ namespace Characters
             }
             
             // interact and look around
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit))
             {
                 PointOfLook = hit.point;
@@ -85,12 +87,23 @@ namespace Characters
                 {
                     if (Vector3.Distance(transform.position, hit.collider.transform.position) < maxInteractionDist)
                     {
-                        var obj = hit.collider.gameObject.GetComponent<InteractableObject>();
+                        _interactableObjectOfInterest = hit.collider.gameObject.GetComponent<InteractableObject>();
                         // TODO show hint
-                        if(obj != null)
-                            ActiveInteractableObject = obj;
+                        if(_interactableObjectOfInterest != null)
+                            ActiveInteractableObject = _interactableObjectOfInterest;
                     }
                 }
+            }
+            
+            
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                Inventory.UseActiveItem(this, _interactableObjectOfInterest);
+            }
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                Inventory.AlternativeUseActiveItem(this, _interactableObjectOfInterest);
             }
         }
 

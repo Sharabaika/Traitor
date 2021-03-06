@@ -12,9 +12,9 @@ namespace MapObjects
     {
         [SerializeField] private string interactionText;
 
-        [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacterLocal;
-        [SerializeField] private UnityEvent<PlayerCharacter> OnUsedByCharacterSync;
-        [SerializeField] private UnityEvent<PlayerCharacter> OnLooseInterestLocal;
+        [SerializeField] private UnityEvent<PlayerCharacter> onUsedByCharacterLocal;
+        [SerializeField] private UnityEvent<PlayerCharacter> onUsedByCharacterSync;
+        [SerializeField] private UnityEvent<PlayerCharacter> onLooseInterestLocal;
         [SerializeField] private bool isOutliningOnMouseOver = true;
 
         [SerializeField] private InteractableObjectStyle style;
@@ -43,22 +43,20 @@ namespace MapObjects
 
         public virtual void Interact(PlayerCharacter with)
         {
-            OnUsedByCharacterLocal?.Invoke(with);
+            onUsedByCharacterLocal?.Invoke(with);
             photonView.RPC("SyncInteraction", RpcTarget.All, with.photonView.Owner);
         }
 
         public virtual void StopInteracting(PlayerCharacter with)
         {
-            OnLooseInterestLocal?.Invoke(with);
+            onLooseInterestLocal?.Invoke(with);
         }
 
         [PunRPC] public void SyncInteraction(Player interactor)
         {
-            Debug.Log(interactor+" interaction with " + gameObject.name + " synced");
-
             var character = GameManager.Instance.Characters[interactor];
             DefaultInteraction(character);
-            OnUsedByCharacterSync?.Invoke(character);
+            onUsedByCharacterSync?.Invoke(character);
         }
         
         protected virtual void DefaultInteraction(PlayerCharacter player)

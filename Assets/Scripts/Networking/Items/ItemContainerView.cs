@@ -12,7 +12,7 @@ namespace Networking.Items
     public class ItemContainerView : MonoBehaviourPunCallbacks
     {
         [SerializeField] private ItemList itemList;
-        [SerializeField] private ItemContainer container;
+        private ItemContainer _container;
 
         private string GetKey()=> "ItemContainer"+photonView.ViewID.ToString();
 
@@ -22,30 +22,35 @@ namespace Networking.Items
 
             var key = GetKey();
             
-            for (var i = 0; i < container.Capacity; i++)
+            for (var i = 0; i < _container.Capacity; i++)
             {
-                var slot = container.GetSlotByIndex(i);
+                var slot = _container.GetSlotByIndex(i);
                 builder.Append(SerializeSlot(slot)).Append(' ');
             }
             var hash = new Hashtable {{key, builder.ToString()}};
             PhotonNetwork.CurrentRoom.SetCustomProperties(hash);
+
         }
 
         private void SetItems(Hashtable properties)
         {
+            if(photonView is null)
+                return;
+
             if (properties.TryGetValue(GetKey(), out var data))
-            { 
+            {
+
                 var str = (string) data;
                 var slotsData = str.TrimEnd().Split(' ');
                 
-                var needToResize = slotsData.Length != container.Capacity;
+                var needToResize = slotsData.Length != _container.Capacity;
                 if (needToResize)
-                    container.Resize(slotsData.Length);
+                    _container.Resize(slotsData.Length);
                 
                 var i = 0;
                 foreach (var slotData in slotsData)
                 {
-                    var containerSlot = container.GetSlotByIndex(i);
+                    var containerSlot = _container.GetSlotByIndex(i);
                     i++;
                     
                     if(SerializeSlot(containerSlot) == slotData)
@@ -63,12 +68,14 @@ namespace Networking.Items
                         containerSlot.ItemInstance.DeserializeState(state);
                     }
                 }
-                container.onItemsSynchronized?.Invoke();
+                _container.onItemsSynchronized?.Invoke();
             }
         }
 
         public override void OnRoomPropertiesUpdate(Hashtable propertiesThatChanged)
         {
+            if(false)
+                return;
             SetItems(propertiesThatChanged);
         }
 
@@ -94,19 +101,20 @@ namespace Networking.Items
         private void Awake()
         {
             var props = PhotonNetwork.CurrentRoom.CustomProperties;
+            _container = GetComponent<ItemContainer>();
             SetItems(props);
         }
 
         public override void OnEnable()
         {
+            _container.onItemsUpdated.AddListener(SendItems);
             base.OnEnable();
-            container.onItemsUpdated.AddListener(SendItems);
         }
 
         public override void OnDisable()
         {
-            base.OnEnable();
-            container.onItemsUpdated.RemoveListener(SendItems);
+            _container.onItemsUpdated.RemoveListener(SendItems);
+            base.OnDisable();
         }
     }
 }

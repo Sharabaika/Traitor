@@ -1,4 +1,5 @@
-﻿using Items.ItemInstances;
+﻿using System;
+using Items.ItemInstances;
 using Items.ScriptableItems;
 using Photon.Pun;
 using UnityEngine;
@@ -23,6 +24,22 @@ namespace Items
         public ItemSlot GetSlotByIndex(int index)
         {
             return itemSlots[index];
+        }
+
+        public virtual void Add(ItemSlot itemsToAdd)
+        {
+            foreach (var slot in itemSlots)
+            {
+                if(itemsToAdd.IsEmpty)
+                    break;
+
+                if (ItemInstance.CanStack(itemsToAdd.ItemInstance, slot.ItemInstance) || slot.IsEmpty)
+                {
+                    Combine(itemsToAdd, slot);
+                }
+            }
+            
+            onItemsUpdated.Invoke();
         }
         
         public void Combine(ItemSlot itemsToAdd, ItemSlot target)
@@ -137,6 +154,27 @@ namespace Items
             itemSlots = newSlots;
             
             onInventoryReshape.Invoke();
+        }
+
+        protected virtual void OnItemsUpdated()
+        {
+        }
+
+        protected virtual void OnItemsSynchronized()
+        {
+            
+        }
+
+        private void OnEnable()
+        {
+            onItemsUpdated.AddListener(OnItemsUpdated);
+            onItemsSynchronized.AddListener(OnItemsSynchronized);
+        }
+
+        private void OnDisable()
+        {
+            onItemsUpdated.RemoveListener(OnItemsUpdated);
+            onItemsSynchronized.RemoveListener(OnItemsSynchronized);
         }
 
         private void Awake()

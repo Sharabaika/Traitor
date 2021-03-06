@@ -4,6 +4,7 @@ using Items;
 using Items.ItemInstances;
 using Items.ItemRepresentations;
 using Items.ScriptableItems;
+using MapObjects;
 using Photon.Pun;
 using ScriptableItems;
 using UnityEditor;
@@ -118,35 +119,43 @@ namespace Characters
             }
         }
 
-        private void OnItemsUpdated()
+        public void UseActiveItem(PlayerCharacter user, InteractableObject target = null)
+        {
+            if (ActiveSlot.IsEmpty) return;
+            
+            ActiveItem.Use(user, target);
+            onItemsUpdated.Invoke();
+        }
+        
+        public void AlternativeUseActiveItem(PlayerCharacter user, InteractableObject target = null)
+        {
+            if (ActiveSlot.IsEmpty) return;
+            
+            ActiveItem.AlternativeUse(user, target);
+            onItemsUpdated.Invoke();
+        }
+
+        protected override void OnItemsUpdated()
         {
             CreateItemRepresentations();
             ActiveIndex = ActiveIndex;
         }
-        
+
+        protected override void OnItemsSynchronized()
+        {
+            CreateItemRepresentations();
+            ActiveIndex = ActiveIndex;
+        }
+
         protected override void OnAwake()
         {
             if(photonView.IsMine)
                 SetItems(serializedSlots);
 
             _character = GetComponent<PlayerCharacter>();
-            
             _items = new Dictionary<ItemInstance, Item>();
-            // CreateItemRepresentations();
             
             ActiveIndex = 0;
-        }
-
-        private void OnEnable()
-        {
-            onItemsUpdated.AddListener(OnItemsUpdated);
-            onItemsSynchronized.AddListener(OnItemsUpdated);
-        }
-
-        private void OnDisable()
-        {
-            onItemsUpdated.RemoveListener(OnItemsUpdated);
-            onItemsSynchronized.RemoveListener(OnItemsUpdated);
         }
 
         private void Update()
@@ -162,18 +171,6 @@ namespace Characters
                     ActiveIndex = i;
                     break;
                 }
-            }
-
-            if (Input.GetKeyDown(KeyCode.Mouse0) && ActiveSlot.IsEmpty == false)
-            {
-                ActiveItem.Use(_character);
-                onItemsUpdated.Invoke();
-            }
-
-            if (Input.GetKeyDown(KeyCode.R) && ActiveSlot.IsEmpty == false)
-            {
-                ActiveItem.AlternativeUse(_character);
-                onItemsUpdated.Invoke();
             }
         }
     }

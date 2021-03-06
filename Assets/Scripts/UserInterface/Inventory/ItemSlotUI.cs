@@ -29,13 +29,13 @@ namespace UserInterface.Inventory
             var itemDragHandler = eventData.pointerDrag.GetComponent<ItemDragHandler>();
             if (itemDragHandler is null)
                 return;
-            var target = itemDragHandler.ItemSlotUi;
-            ItemContainer.Combine(target.ItemSlot, ItemSlot);
+            var dropped = itemDragHandler.ItemSlotUi;
+            ItemContainer.Combine(dropped.ItemSlot, ItemSlot);
 
             // TODO the only way to shift items between chests
-            if (ItemContainer != target.ItemContainer)
+            if (ItemContainer != dropped.ItemContainer)
             {
-                target.ItemContainer.onItemsUpdated.Invoke();
+                dropped.ItemContainer.onItemsUpdated.Invoke();
             }
         }
 

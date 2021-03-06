@@ -45,8 +45,13 @@ namespace UserInterface.Inventory
             if(SlotsHolder is null)
                 return;
 
-            ClearAll();
-
+            // ClearAll
+            foreach (Transform child in SlotsHolder)
+            {
+                Destroy(child.gameObject);
+            }
+            slotUIs.Clear();
+            
             for (int i = 0; i < itemContainer.Capacity; i++)
             {
                 var slotUI = Instantiate(ItemSlotUIPrefab, Vector3.zero, Quaternion.identity, SlotsHolder);
@@ -65,7 +70,6 @@ namespace UserInterface.Inventory
             {
                 StartCoroutine(DestroyAfterValidationFrame(child.gameObject));
             }
-
             slotUIs.Clear();
         }
 

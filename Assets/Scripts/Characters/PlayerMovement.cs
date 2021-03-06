@@ -8,13 +8,14 @@ namespace Characters
     [RequireComponent(typeof(PhotonView), typeof(CharacterAnimator))]
     public class PlayerMovement : MonoBehaviourPun
     {
-        [SerializeField] private float speed = 1.5f;
-        [SerializeField] private float minSpeed = 0.01f;
+        [SerializeField] private float walkingSpeed = 1.5f;
+        [SerializeField] private float runningSpeed = 5f;
         
         private CharacterAnimator _animator;
         private PlayerCharacter _character;
         private Rigidbody _rigidbody;
 
+        private const float MinSpeed = 0.01f;
         private bool _isFrozen = false;
 
         public bool IsFrozen
@@ -50,7 +51,9 @@ namespace Characters
                         Input.GetAxisRaw("Horizontal"),
                         0f,
                         Input.GetAxisRaw("Vertical")).normalized;
-                    velocity = dir * speed;
+                    
+                    var speedMult = Input.GetKey(KeyCode.LeftShift) ? runningSpeed : walkingSpeed;
+                    velocity = dir * speedMult;
                 }
 
                 _rigidbody.velocity = velocity;

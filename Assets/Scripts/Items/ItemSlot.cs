@@ -1,12 +1,24 @@
 ﻿using Items.ItemInstances;
 using UnityEngine;
 
-namespace Items.ScriptableItems
+namespace Items
 {
     public class ItemSlot
     {
         private ItemInstance _itemInstance;
         private int _quantity = 0;
+
+
+        public bool isFull
+        {
+            get
+            {
+                if (IsEmpty)
+                    return false;
+                return Quantity == _itemInstance.Data.MaxStack;
+            }
+        }
+        
         
         public ItemInstance ItemInstance
         {

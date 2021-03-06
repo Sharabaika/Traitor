@@ -1,6 +1,7 @@
 ﻿using Characters;
 using Items.ItemInstances;
 using Logics;
+using MapObjects;
 using Photon.Pun;
 using UnityEngine;
 
@@ -14,7 +15,6 @@ namespace Items.ItemRepresentations
         private PlayerCharacter _owner;
 
         protected bool OwnerIsLocal { get; private set; }
-        
         public bool HasOwner { get; private set; }
         
         protected PlayerCharacter Owner
@@ -44,8 +44,8 @@ namespace Items.ItemRepresentations
         }
         
         
-        public virtual void Use(PlayerCharacter by){}
-        public virtual void AlternativeUse(PlayerCharacter by){}
+        public virtual void Use(PlayerCharacter by, InteractableObject target = null){}
+        public virtual void AlternativeUse(PlayerCharacter by, InteractableObject target = null){}
 
         private void Update()
         {
