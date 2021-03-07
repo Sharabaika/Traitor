@@ -89,8 +89,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   deadBodyPrefab: {fileID: 7646223444463450938, guid: 83c7123c08cc31e499c2d0a7bd2e8add, type: 3}
   ghostPrefab: {fileID: 1424908346274006841, guid: ff84c9d78f702b14bbe46f7597c61f20, type: 3}
-  otherPlayerLayer: 8
-  currentPlayerLayer: 10
   maxInteractionDist: 2
   DeathEvent:
     m_PersistentCalls:
@@ -353,7 +351,7 @@ GameObject:
   - component: {fileID: 7259121322583672022}
   - component: {fileID: 2364223496174239926}
   - component: {fileID: 7879714375461481403}
-  m_Layer: 8
+  m_Layer: 2
   m_Name: NickName
   m_TagString: Untagged
   m_Icon: {fileID: 0}

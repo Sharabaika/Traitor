@@ -108,12 +108,14 @@ namespace Networking.Items
         public override void OnEnable()
         {
             _container.onItemsUpdated.AddListener(SendItems);
+            _container.onInventoryReshape.AddListener(SendItems);
             base.OnEnable();
         }
 
         public override void OnDisable()
         {
             _container.onItemsUpdated.RemoveListener(SendItems);
+            _container.onInventoryReshape.RemoveListener(SendItems);
             base.OnDisable();
         }
     }

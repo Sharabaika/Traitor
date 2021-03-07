@@ -16,8 +16,8 @@ TagManager:
   - 
   - Characters
   - CurrentPlayer
-  - ItemPIckup
-  - 
+  - ItemPickup
+  - InteractableObject
   - 
   - 
   - 

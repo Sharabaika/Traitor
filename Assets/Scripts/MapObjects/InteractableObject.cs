@@ -14,42 +14,17 @@ namespace MapObjects
 
         [SerializeField] private UnityEvent<PlayerCharacter> onUsedByCharacterLocal;
         [SerializeField] private UnityEvent<PlayerCharacter> onUsedByCharacterSync;
-        [SerializeField] private UnityEvent<PlayerCharacter> onLooseInterestLocal;
-        [SerializeField] private bool isOutliningOnMouseOver = true;
 
-        [SerializeField] private InteractableObjectStyle style;
+        [SerializeField] private InteractableObjectStyle outlineStyle;
         
-        
-        private bool _isOutlining = false;
-        private bool IsOutlining
-        {
-            get => _isOutlining;
-            set
-            {
-                _isOutlining = value;
-                // _renderer.sharedMaterial = value ? style.outlineShader : style.defaultShader;
-            }
-        }
+        public UnityEvent<PlayerCharacter> onStopInteractingLocal;
 
-        private void Awake()
-        {
-            OnAwake();
-        }
-
-        private void Start()
-        {
-            OnStart();
-        }
+        private OutlineGroup _outlineGroup;
 
         public virtual void Interact(PlayerCharacter with)
         {
             onUsedByCharacterLocal?.Invoke(with);
             photonView.RPC("SyncInteraction", RpcTarget.All, with.photonView.Owner);
-        }
-
-        public virtual void StopInteracting(PlayerCharacter with)
-        {
-            onLooseInterestLocal?.Invoke(with);
         }
 
         [PunRPC] public void SyncInteraction(Player interactor)
@@ -58,17 +33,42 @@ namespace MapObjects
             DefaultInteraction(character);
             onUsedByCharacterSync?.Invoke(character);
         }
-        
+
         protected virtual void DefaultInteraction(PlayerCharacter player)
         {
             
         }
+
+        public void HighlightObject(PlayerCharacter interactor)
+        {
+            _outlineGroup.GroupColor = outlineStyle.OutlineOnHoverColor;
+            _outlineGroup.GroupWidth = outlineStyle.OutlineOnHoverWidth;
+            _outlineGroup.GroupEnabled = true;
+        }
+
+        public void StopHighlighting()
+        {
+            _outlineGroup.GroupEnabled = false;
+        }
         
+
+        private void Awake()
+        {
+            _outlineGroup = GetComponent<OutlineGroup>();
+            _outlineGroup.GroupEnabled = false;
+            OnAwake();
+        }
+
+        private void Start()
+        {
+            OnStart();
+        }
+
         protected virtual void OnAwake()
         {
             
         }
-        
+
         protected virtual void OnStart()
         {
             
@@ -77,18 +77,6 @@ namespace MapObjects
         protected virtual void OnNewPlayerJoinedRoom(Player newPlayer)
         {
             
-        }
-
-        private void OnMouseEnter()
-        {
-            if(isOutliningOnMouseOver)
-                IsOutlining = true;
-        }
-
-        private void OnMouseExit()
-        {
-            if(isOutliningOnMouseOver)
-                IsOutlining = false;
         }
 
         public override void OnPlayerEnteredRoom(Player newPlayer)

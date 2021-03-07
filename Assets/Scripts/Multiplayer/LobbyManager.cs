@@ -1,5 +1,6 @@
 ﻿using System;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -25,6 +26,11 @@ namespace Multiplayer
         public override void OnConnectedToMaster()
         {
             Log("Connected to master");
+        }
+
+        public override void OnDisconnected(DisconnectCause cause)
+        {
+            Log(cause.ToString());
         }
 
         public void CreateRoom()

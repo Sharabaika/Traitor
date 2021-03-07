@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering.VirtualTexturing;
+using WebSocketSharp;
 
 namespace Characters
 {
@@ -19,9 +20,6 @@ namespace Characters
     {
         [SerializeField] private DeadBody deadBodyPrefab;
         [SerializeField] private Ghost ghostPrefab;
-
-        [SerializeField] private int otherPlayerLayer;
-        [SerializeField] private int currentPlayerLayer;
 
         [SerializeField] private float maxInteractionDist = 2f;
 
@@ -42,14 +40,36 @@ namespace Characters
         private InteractableObject _interactableObjectOfInterest;
         private Camera _mainCamera;
 
-        public InteractableObject ActiveInteractableObject
+        private InteractableObject ObjectOfInterest
+        {
+            get => _interactableObjectOfInterest;
+            set
+            {
+                if(_interactableObjectOfInterest == value)
+                    return;
+
+                if (_interactableObjectOfInterest != null)
+                    _interactableObjectOfInterest.StopHighlighting();
+                
+                _interactableObjectOfInterest = value;
+               
+               if(value!=null)
+                   value.HighlightObject(this);
+            }
+        }
+        
+        private InteractableObject ActiveInteractableObject
         {
             get => _activeInteractableObject;
             set
             {
-                ActiveInteractableObject?.StopInteracting(this);
+                if(_activeInteractableObject!=null)
+                    _activeInteractableObject.onStopInteractingLocal.Invoke(this); 
+                
                 _activeInteractableObject = value;
-                ActiveInteractableObject?.Interact(this);
+                
+                if(_activeInteractableObject!=null)
+                    _activeInteractableObject.Interact(this);
             }
         }
 
@@ -78,20 +98,22 @@ namespace Characters
             }
             
             // interact and look around
+            // TODO add interactableObject layer
             var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit))
+
+            var mask = LayerMask.GetMask("Default", "Characters", "ItemPickup", "InteractableObject");
+            if (Physics.Raycast(ray, out var hit, 100f, mask))
             {
+                Debug.DrawLine(ray.origin, hit.point);
                 PointOfLook = hit.point;
-                
-                if (Input.GetKeyDown(KeyCode.E))
+                ObjectOfInterest = hit.collider.gameObject.GetComponent<InteractableObject>();
+
+                if (Input.GetKeyDown(KeyCode.E) && 
+                    Vector3.Distance(transform.position, hit.collider.transform.position) < maxInteractionDist)
                 {
-                    if (Vector3.Distance(transform.position, hit.collider.transform.position) < maxInteractionDist)
-                    {
-                        _interactableObjectOfInterest = hit.collider.gameObject.GetComponent<InteractableObject>();
                         // TODO show hint
-                        if(_interactableObjectOfInterest != null)
-                            ActiveInteractableObject = _interactableObjectOfInterest;
-                    }
+                    if(ObjectOfInterest != null)
+                        ActiveInteractableObject = ObjectOfInterest;
                 }
             }
             
@@ -110,17 +132,18 @@ namespace Characters
         private void Start()
         {
             GameManager.Instance.AddPlayer(this);
-
+            // TODO serialize layers
+            
             if (photonView.IsMine)
             {
                 var virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
                 virtualCamera.Follow = transform;
 
-                gameObject.layer = currentPlayerLayer;
+                gameObject.layer = LayerMask.NameToLayer("CurrentPlayer");
             }
             else
             {
-                gameObject.layer = otherPlayerLayer;
+                gameObject.layer = LayerMask.NameToLayer("Characters");;
             }
         }
 
