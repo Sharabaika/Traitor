@@ -9,7 +9,7 @@ using UnityEngine.Events;
 
 namespace Items.ItemRepresentations
 {
-    public class Weapon : Item
+    public class Weapon : PointingObject
     {
         [SerializeField] private Transform muzzle;
         
@@ -17,11 +17,9 @@ namespace Items.ItemRepresentations
         [SerializeField] private UnityEvent onFailedShot;
         [SerializeField] private UnityEvent onReload;
         
-        [SerializeField] private float swingSmoothing = 15;
 
         private WeaponInstance _weaponInstance;
         private WeaponData _data;
-        private Quaternion _targetRotation;
         
         
         public override void SetItemInstance(ItemInstance instance)
@@ -77,24 +75,6 @@ namespace Items.ItemRepresentations
             onReload?.Invoke();
         }
         
-        protected override void OnUpdate()
-        {
-            if (isHidden == false && HasOwner)
-            {
-                var direction = Owner.PointOfLook - transform.position;
-                _targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
 
-                if (OwnerIsLocal)
-                {
-                    transform.rotation = _targetRotation;
-                }
-                else
-                {
-                    // smooth
-                    transform.rotation = Quaternion.Slerp(transform.rotation, _targetRotation,
-                        Time.deltaTime * swingSmoothing);
-                }
-            }
-        }
     }
 }

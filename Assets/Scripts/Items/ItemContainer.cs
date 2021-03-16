@@ -184,8 +184,19 @@ namespace Items
 
         protected virtual void OnAwake()
         {
+
+        }
+
+        private void Start()
+        {
             if(PhotonNetwork.IsMasterClient)
                 SetItems(serializedSlots);
+            OnStart();
+        }
+
+        protected virtual void OnStart()
+        {
+            
         }
     }
 }

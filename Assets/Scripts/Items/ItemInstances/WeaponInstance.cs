@@ -59,10 +59,14 @@ namespace Items.ItemInstances
             return RemainingAmmo.ToString();
         }
 
-        public override void DeserializeState(string data)
+        public override bool DeserializeState(string data)
         {
             var values = data.Split(':');
-            RemainingAmmo = int.Parse(values[0]);
+            var updatedAmmo = int.Parse(values[0]);
+            if (updatedAmmo == RemainingAmmo)
+                return false;
+            RemainingAmmo = updatedAmmo;
+            return true;
         }
     }
 }

@@ -73,6 +73,7 @@ MonoBehaviour:
   - OnFailedShot_RPC
   - OnReload_RPC
   - OnShot_RPC
+  - TurnOn
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

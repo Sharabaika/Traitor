@@ -18,6 +18,10 @@ namespace Networking.Items
 
         private void SendItems()
         {
+            if(!(photonView.IsMine || PhotonNetwork.IsMasterClient) )
+                return;
+            
+            
             var builder = new StringBuilder();
 
             var key = GetKey();
@@ -39,19 +43,19 @@ namespace Networking.Items
 
             if (properties.TryGetValue(GetKey(), out var data))
             {
-
+                var needToUpdate = false;
                 var str = (string) data;
                 var slotsData = str.TrimEnd().Split(' ');
                 
                 var needToResize = slotsData.Length != _container.Capacity;
                 if (needToResize)
                     _container.Resize(slotsData.Length);
+
                 
-                var i = 0;
-                foreach (var slotData in slotsData)
+                for (var i = 0; i < slotsData.Length; i++)
                 {
+                    var slotData = slotsData[i];
                     var containerSlot = _container.GetSlotByIndex(i);
-                    i++;
                     
                     if(SerializeSlot(containerSlot) == slotData)
                         continue;
@@ -64,11 +68,18 @@ namespace Networking.Items
                     {
                         var id = int.Parse(parsedSlot[1]);
                         var state = parsedSlot[2];
-                        containerSlot.ItemInstance =itemList.GetItemInstance(id);
-                        containerSlot.ItemInstance.DeserializeState(state);
+                        if(itemList.GetItemDataID(containerSlot.ItemInstance) != id)
+                        {
+                            containerSlot.ItemInstance = itemList.GetItemInstance(id);
+                            needToUpdate = true;
+                        }
+
+                        if (containerSlot.ItemInstance.DeserializeState(state))
+                            needToUpdate = true;
                     }
                 }
-                _container.onItemsSynchronized?.Invoke();
+                if(needToUpdate)
+                    _container.onItemsSynchronized?.Invoke();
             }
         }
 

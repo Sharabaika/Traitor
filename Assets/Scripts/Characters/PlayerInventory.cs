@@ -69,6 +69,9 @@ namespace Characters
             if(photonView.IsMine == false)
                 return;
             
+            Debug.Log("creating item representations");
+            
+            
             // check inventory slots
             for (int i = 0; i < Capacity; i++)
             {
@@ -78,10 +81,10 @@ namespace Characters
 
                 if (_items.TryGetValue(slot.ItemInstance, out var representation))
                 {
+                    Debug.Log($"item {slot.ItemInstance.Data.name} exists");
                 }
                 else
                 {
-                    var itemPrefab = slot.ItemInstance.Data.Item;
                     var path = slot.ItemInstance.Data.PrefabPath;
                     var gameObject = PhotonNetwork.Instantiate(path, anchor.position, Quaternion.identity);
                     
@@ -92,6 +95,7 @@ namespace Characters
                     item.HandlePositioning(_character);
                     item.SetItemInstance(slot.ItemInstance);
                     _items.Add(slot.ItemInstance, item);
+                    Debug.Log($"created with path {path}");
                 }
             }
             
@@ -137,25 +141,32 @@ namespace Characters
 
         protected override void OnItemsUpdated()
         {
+            Debug.Log("OnItemsUpdated invoke");
+
             CreateItemRepresentations();
             ActiveIndex = ActiveIndex;
         }
 
         protected override void OnItemsSynchronized()
         {
+            Debug.Log("OnItemsSynchronized invoke");
             CreateItemRepresentations();
             ActiveIndex = ActiveIndex;
         }
 
         protected override void OnAwake()
         {
-            if(photonView.IsMine)
-                SetItems(serializedSlots);
+            // if(photonView.IsMine)
+            //     SetItems(serializedSlots);
 
             _character = GetComponent<PlayerCharacter>();
-            _items = new Dictionary<ItemInstance, Item>();
-            
-            ActiveIndex = 0;
+            _items = new Dictionary<ItemInstance, Item>();    
+        }
+
+        protected override void OnStart()
+        {
+            if(photonView.IsMine)
+                ActiveIndex = 0;
         }
 
         private void Update()

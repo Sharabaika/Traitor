@@ -53,8 +53,12 @@ namespace UserInterface.Inventory
 
         public void DisplayInfo(ItemData infoItemData)
         {
+            if(infoItemData is null)
+                return;
+            
             var builder = new StringBuilder();
-
+            
+            // BUG null reference
             builder.Append("<size=75>").Append(infoItemData.name).Append("</size>\n");
             builder.Append(infoItemData.Description);
 

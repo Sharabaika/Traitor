@@ -28,9 +28,14 @@ namespace Items.ItemInstances
             return "";
         }
 
-        public virtual void DeserializeState(string data)
+        /// <summary>
+        /// returns true if updated state, false otherwise
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public virtual bool DeserializeState(string data)
         {
-            
+            return false;
         }
 
         public static bool CanStack(ItemInstance a, ItemInstance b)
